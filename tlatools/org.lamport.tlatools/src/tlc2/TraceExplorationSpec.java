@@ -99,6 +99,7 @@ public class TraceExplorationSpec {
 			TraceExplorer.writeSpecTEStreams(
 					teSpecModuleName,
 					ogModuleName,
+					null,
 					constants,
 					variables,
 					errorTrace,

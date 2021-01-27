@@ -28,13 +28,14 @@ import tlc2.output.MP;
 import tlc2.output.Messages;
 import tlc2.output.SpecTraceExpressionWriter;
 import tlc2.tool.TLCState;
+import tlc2.value.impl.ModelValue;
 import util.TLAConstants;
 import util.ToolIO;
 import util.UsageGenerator;
 
 /**
  * This is an application class which provides the following functionalities:
- * 
+ *
  * 		. given a directory of a previously run model check (containing a .tla/.cfg/.out triplet), produce a "SpecTE"
  * 				.tla / .cfg file pair
  * 		. given a directory of a previously run model check (containing a .out file), dump a pretty print of the
@@ -52,29 +53,29 @@ public class TraceExplorer {
 	private static final String QUASI_REPL_PARAMETER_NAME = "-replBis";
 	private static final String TRACE_EXPRESSIONS_FUNCTION_PARAMETER_NAME = "-traceExpressions";
 
-    private static final String EXPRESSIONS_FILE_PARAMETER_NAME = "-expressionsFile";
+	private static final String EXPRESSIONS_FILE_PARAMETER_NAME = "-expressionsFile";
+	private static final String EXPRESSIONS_PARAMETER_NAME = "-expressions";
     private static final String MODEL_CHECK_JVM_ARGUMENTS_PARAMETER_NAME = "-jvmArguments";
     private static final String MODEL_CHECK_TLC_ARGUMENTS_PARAMETER_NAME = "-tlcArguments";
 
     private static final String SOURCE_DIR_PARAMETER_NAME = "-source";
     private static final String GENERATE_SPEC_OVERWRITE_PARAMETER_NAME = "-overwrite";
-    
+
     static final String SPEC_TE_INIT_ID = "_SpecTEInit";
     static final String SPEC_TE_NEXT_ID = "_SpecTENext";
-    private static final String SPEC_TE_ACTION_CONSTRAINT_ID = "_SpecTEActionConstraint";
-    
+
     // <parameter name, whether the parameter takes an argument>
     private static final HashMap<String, Boolean> TLC_ARGUMENTS_TO_IGNORE;
-    
+
     static {
     	TLC_ARGUMENTS_TO_IGNORE = new HashMap<>();
-    	
+
     	TLC_ARGUMENTS_TO_IGNORE.put("-config", Boolean.TRUE);
     	TLC_ARGUMENTS_TO_IGNORE.put("-metadir", Boolean.TRUE);
     	TLC_ARGUMENTS_TO_IGNORE.put("-tool", Boolean.FALSE);
     }
-    
-    
+
+
     /**
 	 * @return an array of length two; the 0-index is the location to the
 	 *         destination TLA file, and the 1-index is that of the CFG file
@@ -82,6 +83,7 @@ public class TraceExplorer {
 	public static File[] writeSpecTEFiles(
 			final File outputDirectory,
 			final String osn,
+			final String expressionsInput,
 			final String[] vars,
 			final MCParserResults results,
 			final MCError error)
@@ -108,6 +110,7 @@ public class TraceExplorer {
 			writeSpecTEStreams(
 					TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME,
 					osn,
+					expressionsInput,
 					constants,
 					variables,
 					error,
@@ -131,6 +134,7 @@ public class TraceExplorer {
 	public static void writeSpecTEStreams(
 			final String teSpecModuleName,
 			final String originalSpecName,
+			final String expressionsInput,
 			final List<String> constants,
 			final List<String> variables,
 			final MCError error,
@@ -138,6 +142,21 @@ public class TraceExplorer {
 			final OutputStream specTECFGOutStream) throws IOException {
 
 		final SpecTraceExpressionWriter writer = new SpecTraceExpressionWriter();
+
+		// Add all the model values as constants, they have to be reified (to mean something) in a TLA module.
+		// First we set all the model values seen, the values will be at the static field ModelValue.mvs.
+		ModelValue.setValues();
+		List<String> mvsStr = new ArrayList<String>();
+		for (ModelValue mv : ModelValue.mvs) {
+			mvsStr.add(mv.toString());
+		}
+		String modelValuesAsConstants;
+		if (!mvsStr.isEmpty()) {
+			modelValuesAsConstants = String.format("CONSTANTS %s\n", String.join(", ", mvsStr));
+		}
+		else {
+			modelValuesAsConstants = "";
+		}
 
 		/**
 		 * Write content of config file (SpecTE).
@@ -147,9 +166,18 @@ public class TraceExplorer {
 		 * and CONSTANTS verbatim from the existing config file with which TLC ran. The
 		 * definition that appear in the .tla file (e.g. MC.tla) don't have to be copied
 		 * because SpecTE extends MC.
+		 * We also add the model values as constants so they can be used for the traces at
+		 * the TLA modules.
 		 * (see TraceExplorerDelegate#writeModelInfo)
 		 */
-		writer.addConstants(constants);
+		List<String> mvsConfigConstants = new ArrayList<String>();
+		for (String mv : mvsStr) {
+			mvsConfigConstants.add(String.format("%s = %s", mv, mv));
+		}
+		if(!constants.isEmpty()) {
+			constants.set(0, constants.get(0).concat(TLAConstants.CR).concat(String.join(TLAConstants.CR, mvsConfigConstants)));
+			writer.addConstants(constants);
+		}
 
 		/**
 		 * Write SpecTE.
@@ -159,35 +187,41 @@ public class TraceExplorer {
 		extendedModules.add(TLAConstants.BuiltInModules.TRACE_EXPRESSIONS);
 
 		writer.addPrimer(teSpecModuleName, originalSpecName, extendedModules);
-		
+		writer.append(modelValuesAsConstants);
+
 		writer.addTraceExpressionInstance(
 				String.format("%s_%s", originalSpecName, TLAConstants.TraceExplore.EXPLORATION_MODULE_NAME));
 
 		final List<MCState> trace = error.getStates();
-		
+
 		final String traceFunctionId = writer.addTraceFunctionInstance();
-		
+
 		writer.addProperties(trace);
 
 		// Write Init and Next with vars instead of extracting the vars from trace to
 		// always write a syntactically correct behavior spec even if trace = <<>>.
 		writer.addInitNextTraceFunction(trace, variables, SPEC_TE_INIT_ID, SPEC_TE_NEXT_ID);
-				
+
 		writer.addFooter();
-		
+
 		/**
 		 * Write definition of trace expression into new module.
 		 */
 		writer.append(TLAConstants.CR);
-		
+
 		final SpecTraceExpressionWriter te = new SpecTraceExpressionWriter();
 		te.append(TLAConstants.CR);
 		te.addPrimer(String.format("%s_%s", originalSpecName, TLAConstants.TraceExplore.EXPLORATION_MODULE_NAME),
 				originalSpecName, extendedModules);
+		te.append(modelValuesAsConstants);
 		te.addTraceExpressionStub(TLAConstants.TraceExplore.SPEC_TE_TRACE_EXPRESSION, variables);
+		if (expressionsInput != null) {
+			// Merge the input trace expressions (which should be a stringified TLA+ Structure) with the variables.
+			te.append("@@ " + expressionsInput + TLAConstants.CR);
+		}
 		te.addFooter();
 		writer.append(TLAConstants.CR + te.toString() + TLAConstants.CR + TLAConstants.CR);
-		
+
 		/**
 		 * Write commented definition of trace def override into new module.
 		 * A user simply has to provide the serialized trace and uncomment the module.
@@ -212,40 +246,44 @@ public class TraceExplorer {
 		w.addFooter();
 		// Users can uncomment the module if they wish to read the serialized trace.
 		writer.append(TLAConstants.CR + w.getComment() + TLAConstants.CR + TLAConstants.CR);
-		
+
 		/**
 		 * Write definition of trace def into new module.
 		 */
 		writer.addPrimer(TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "TraceDef", originalSpecName, extendedModules);
+		writer.append(modelValuesAsConstants);
 
 		writer.addTraceFunction(trace, traceFunctionId);
-		
+
 		writer.addAliasToCfg(TLAConstants.TraceExplore.SPEC_TE_TTRACE_EXPRESSION);
-		
+
         /**
          * Write to streams.
          */
 		writer.writeStreams(specTETLAOutStream, specTECFGOutStream);
     }
-    
-    
+
+
     private enum RunMode {
     	GENERATE_SPEC_TE, PRETTY_PRINT, GENERATE_FROM_TLC_RUN, QUASI_REPL, TRACE_EXPLORATION;
     }
 
-    
+
     private File specGenerationSourceDirectory;
     private String specGenerationOriginalSpecName;
     private boolean expectedOutputFromStdIn;
     private boolean overwriteGeneratedFiles;
-    
+
     private List<String> expressions;
     private List<String> tlcArguments;
-    
+
     private String replSpecName;
     private File temporaryREPLSpec;
-    
-    private RunMode runMode;
+
+	private RunMode runMode;
+
+	// This variable stores the trace expressions used when generating `TTrace`.
+	String expressionsInput = null;
 
     /**
      * @param commandLineArguments arguments, ostensibly from the command line, with which this instance will configure
@@ -317,12 +355,16 @@ public class TraceExplorer {
 					index++;
 				} else if (GENERATE_SPEC_OVERWRITE_PARAMETER_NAME.equals(nextArg)) {
 					overwriteGeneratedFiles = true;
-					
+
 					index++;
 				} else if (EXPRESSIONS_FILE_PARAMETER_NAME.equals(nextArg)) {
 					index++;
 
 					expressionsSourceFilename = args[index++];
+				} else if (EXPRESSIONS_PARAMETER_NAME.equals(nextArg)) {
+					index++;
+
+					expressionsInput = args[index++];
 				} else if (MODEL_CHECK_JVM_ARGUMENTS_PARAMETER_NAME.equals(nextArg)) {
 					index++;
 
@@ -746,22 +788,22 @@ public class TraceExplorer {
 				}
 			}
 		}
-		
+
 		return true;
     }
-    
+
 	private void writeSpecTEFiles(final MCParserResults results, final MCError error) throws IOException {
-		writeSpecTEFiles(specGenerationSourceDirectory, specGenerationOriginalSpecName,
+		writeSpecTEFiles(specGenerationSourceDirectory, specGenerationOriginalSpecName, expressionsInput,
 				// Not sure TLCState.Empty is correctly initialized at this point, but I don't
 				// want to spend more time on it (screw you future Markus).
 				TLCState.Empty.getVarsAsStrings(), results, error);
 	}
-    
+
     private void printErrorMessage(final String message) {
     	MP.printError(EC.GENERAL, message);
     }
-    
-    
+
+
     private static void printUsageAndExit() {
     	final List<List<UsageGenerator.Argument>> commandVariants = new ArrayList<>();
     	final UsageGenerator.Argument expressionFile
