@@ -208,11 +208,17 @@ public class TraceExplorer {
 		 * Write definition of trace expression into new module.
 		 */
 		writer.append(TLAConstants.CR);
-
+		
 		final SpecTraceExpressionWriter te = new SpecTraceExpressionWriter();
-		te.append(TLAConstants.CR);
-		te.addPrimer(String.format("%s_%s", originalSpecName, TLAConstants.TraceExplore.EXPLORATION_MODULE_NAME),
-				originalSpecName, extendedModules);
+		final String teModuleName = String.format("%s_%s", originalSpecName, TLAConstants.TraceExplore.EXPLORATION_MODULE_NAME);
+		te.append(TLAConstants.CR);		
+		writer.append(String.format("You can copy and paste the module `%s`", teModuleName)).append(TLAConstants.CR);
+		writer.append(" to its own file so you are able to keep your trace").append(TLAConstants.CR);
+		writer.append(" expression after each `TTrace.tla` regeneration,").append(TLAConstants.CR);
+		writer.append(" don't having to rewrite it again.").append(TLAConstants.CR);
+		writer.append(" A standalone module has priority over a module in").append(TLAConstants.CR);
+		writer.append(" a monolith file.");		
+		te.addPrimer(teModuleName, originalSpecName, extendedModules);
 		te.append(modelValuesAsConstants);
 		te.addTraceExpressionStub(TLAConstants.TraceExplore.SPEC_TE_TRACE_EXPRESSION, variables, expressionsInput);		
 		te.addFooter();
