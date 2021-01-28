@@ -703,7 +703,7 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 	 * Adds the invariant ~(P) where P is the formula describing finalState. The format
 	 * in the tla file is as follows:
 	 * 
-	 * inv_12312321321 ==
+	 * _inv ==
 	 * ~(
 	 * P
 	 * )
@@ -711,8 +711,8 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 	 * 
 	 * @param finalState
 	 */
-	public void addInvariant(final MCState finalState) {
-	    final String id = SpecWriterUtilities.getValidIdentifier(TLAConstants.Schemes.INVARIANT_SCHEME);
+	private void addInvariant(final MCState finalState) {
+	    final String id = SpecWriterUtilities.getValidIdentifierNoTimestamp(TLAConstants.Schemes.INVARIANT_SCHEME);
 	    cfgBuffer.append(TLAConstants.COMMENT).append(TLAConstants.KeyWords.INVARIANT).append(" definition");
 	    cfgBuffer.append(TLAConstants.CR).append(TLAConstants.KeyWords.INVARIANT).append(TLAConstants.CR);
 	    cfgBuffer.append(id).append(TLAConstants.CR);
@@ -777,7 +777,7 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 	 * Adds the temporal property ~<>[](P) where P is the formula describing finalState.
 	 * The format in the tla file is as follows:
 	 * 
-	 * prop_23112321 ==
+	 * _prop ==
 	 * ~<>[](
 	 * P
 	 * )
@@ -785,8 +785,8 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 	 * 
 	 * @param finalState
 	 */
-	public void addStutteringProperty(final MCState finalState) {
-	    String id = SpecWriterUtilities.getValidIdentifier(TLAConstants.Schemes.PROP_SCHEME);
+	private void addStutteringProperty(final MCState finalState) {
+	    String id = SpecWriterUtilities.getValidIdentifierNoTimestamp(TLAConstants.Schemes.PROP_SCHEME);
 	    cfgBuffer.append(TLAConstants.COMMENT).append(TLAConstants.KeyWords.PROPERTY).append(" definition");
 	    cfgBuffer.append(TLAConstants.CR).append(TLAConstants.KeyWords.PROPERTY).append(TLAConstants.CR);
 	    cfgBuffer.append(id).append(TLAConstants.CR);
@@ -802,7 +802,7 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 	 * Adds the temporal property ~([]<>P /\ []<>Q), where P is the formula describing finalState and 
 	 * Q the formula describing backToState. The formatting in the tla file is as follows:
 	 * 
-	 * prop_21321312 ==
+	 * _prop ==
 	 * ~(([]<>(
 	 * P
 	 * ))/\([]<>(
@@ -813,8 +813,8 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 	 * @param finalState
 	 * @param backToState
 	 */
-	public void addBackToStateProperty(final MCState finalState, final MCState backToState) {
-	    final String id = SpecWriterUtilities.getValidIdentifier(TLAConstants.Schemes.PROP_SCHEME);
+	private void addBackToStateProperty(final MCState finalState, final MCState backToState) {
+	    final String id = SpecWriterUtilities.getValidIdentifierNoTimestamp(TLAConstants.Schemes.PROP_SCHEME);
 	    cfgBuffer.append(TLAConstants.COMMENT).append(TLAConstants.KeyWords.PROPERTY).append(" definition");
 	    cfgBuffer.append(TLAConstants.CR).append(TLAConstants.KeyWords.PROPERTY).append(TLAConstants.CR);
 	    cfgBuffer.append(id).append(TLAConstants.CR);
@@ -978,11 +978,11 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 	public String addTraceFunctionInstance() {
 		/*
 		 * SpecTETraceDef == INSTANCE SpecTETraceDef
-		 * def_ov_15940964130543000 == SpecTETraceDef!def_ov_15940964130543000
+		 * _def_ov == SpecTETraceDef!def_ov_15940964130543000
 		 */
 		tlaBuffer.append(TLAConstants.COMMENT).append(TLAConstants.TraceExplore.ERROR_STATES_MODULE_NAME)
 				.append(" definition").append(TLAConstants.CR);
-		final String identifier = SpecWriterUtilities.getValidIdentifier(TLAConstants.Schemes.DEFOV_SCHEME);
+		final String identifier = SpecWriterUtilities.getValidIdentifierNoTimestamp(TLAConstants.Schemes.DEFOV_SCHEME);
 		tlaBuffer.append(TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "TraceDef == INSTANCE "
 				+ TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME
 				+ TLAConstants.TraceExplore.ERROR_STATES_MODULE_NAME).append(TLAConstants.CR);
