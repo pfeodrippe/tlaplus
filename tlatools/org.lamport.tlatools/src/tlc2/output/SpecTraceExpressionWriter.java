@@ -613,7 +613,7 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 	 * @param teName Name of trace expression.
 	 * @param variables Spec variables; transformed by identity.
 	 */
-	public void addTraceExpressionStub(String teName, final List<String> variables) {
+	public void addTraceExpressionStub(String teName, final List<String> variables, String expressionsInput) {
 		this.tlaBuffer.append(teName + TLAConstants.DEFINES + TLAConstants.CR);
 		this.tlaBuffer
 				.append(TLAConstants.INDENT + TLAConstants.L_SQUARE_BRACKET + TLAConstants.CR + TLAConstants.INDENT);
@@ -624,7 +624,12 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 		this.tlaBuffer.append(TLAConstants.INDENT + TLAConstants.INDENT + TLAConstants.COMMENT + "Put additional trace expressions here; examples:" + TLAConstants.CR);
 		this.tlaBuffer.append(TLAConstants.INDENT + TLAConstants.INDENT + TLAConstants.COMMENT + TLAConstants.COMMA + "x" + TLAConstants.RECORD_ARROW + TLAConstants.TLA_NOT + "y" + TLAConstants.PRIME + TLAConstants.CR);
 		this.tlaBuffer.append(TLAConstants.INDENT + TLAConstants.INDENT + TLAConstants.COMMENT + TLAConstants.COMMA + "e" + TLAConstants.RECORD_ARROW + TLAConstants.KeyWords.ENABLED + TLAConstants.SPACE + "ActionName" + TLAConstants.CR);
-		this.tlaBuffer.append(TLAConstants.INDENT + TLAConstants.R_SQUARE_BRACKET + TLAConstants.CR + TLAConstants.CR);
+		this.tlaBuffer.append(TLAConstants.INDENT + TLAConstants.R_SQUARE_BRACKET);
+		if (expressionsInput != null) {
+			// Merge the input trace expressions (which should be a stringified TLA+ Structure) with the variables.
+			this.tlaBuffer.append(" @@ " + expressionsInput);
+		}
+		this.tlaBuffer.append(TLAConstants.CR + TLAConstants.CR);
 	}
 
 	public void addFooter() {

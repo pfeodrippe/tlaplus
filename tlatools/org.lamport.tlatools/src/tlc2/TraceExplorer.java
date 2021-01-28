@@ -214,11 +214,7 @@ public class TraceExplorer {
 		te.addPrimer(String.format("%s_%s", originalSpecName, TLAConstants.TraceExplore.EXPLORATION_MODULE_NAME),
 				originalSpecName, extendedModules);
 		te.append(modelValuesAsConstants);
-		te.addTraceExpressionStub(TLAConstants.TraceExplore.SPEC_TE_TRACE_EXPRESSION, variables);
-		if (expressionsInput != null) {
-			// Merge the input trace expressions (which should be a stringified TLA+ Structure) with the variables.
-			te.append("@@ " + expressionsInput + TLAConstants.CR);
-		}
+		te.addTraceExpressionStub(TLAConstants.TraceExplore.SPEC_TE_TRACE_EXPRESSION, variables, expressionsInput);		
 		te.addFooter();
 		writer.append(TLAConstants.CR + te.toString() + TLAConstants.CR + TLAConstants.CR);
 
