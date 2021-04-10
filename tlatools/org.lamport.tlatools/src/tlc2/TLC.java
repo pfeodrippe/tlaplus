@@ -31,6 +31,7 @@ import tlc2.output.ErrorTraceMessagePrinterRecorder;
 import tlc2.output.MP;
 import tlc2.output.Messages;
 import tlc2.tool.DFIDModelChecker;
+import tlc2.tool.ITLCCustomHandler;
 import tlc2.tool.ITool;
 import tlc2.tool.ModelChecker;
 import tlc2.tool.Simulator;
@@ -293,7 +294,7 @@ public class TLC {
      */
     public static void main(String[] args) throws Exception
     {
-        final TLC tlc = new TLC();
+        final TLC tlc = new TLC();        
 
         // Try to parse parameters.
         if (!tlc.handleParameters(args)) {
@@ -337,7 +338,7 @@ public class TLC {
 		// write the MC.out file. The MC.out file is e.g. used by CloudTLC to feed
 		// progress back to the Toolbox (see CloudDistributedTLCJob).
 		ms.setModelName(tlc.getModelName());
-		ms.setSpecName(tlc.getSpecName());
+		ms.setSpecName(tlc.getSpecName());        
 
         // Execute TLC.
         final int errorCode = tlc.process();
@@ -1030,8 +1031,30 @@ public class TLC {
      * The processing method
      */
     public int process()
-    {
-    	MP.setRecorder(this.recorder);
+    {        
+        String tlcCustomHandler = System.getProperty("TLCCustomHandler");
+        if (tlcCustomHandler != null) {
+            try {
+                Class klass = Class.forName(tlcCustomHandler);
+                if (ITLCCustomHandler.class.isAssignableFrom(klass)) {
+                    ITLCCustomHandler handler = (ITLCCustomHandler) klass.getConstructor().newInstance();
+                    handler.process(this);
+                } else {
+                    // Error if class does not implements `ITLCCustomHandler`.
+                    System.exit(1);
+                }
+            } catch (ClassNotFoundException e) {
+                System.exit(1);                
+            } catch (NoSuchMethodException e) {
+                System.exit(1);                
+            } catch (InstantiationException e) {
+                System.exit(1);
+            } catch (Exception e) {
+                System.exit(1);
+            }
+        }
+    	
+        MP.setRecorder(this.recorder);
         // UniqueString.initialize();
         
         // a JMX wrapper that exposes runtime statistics 
