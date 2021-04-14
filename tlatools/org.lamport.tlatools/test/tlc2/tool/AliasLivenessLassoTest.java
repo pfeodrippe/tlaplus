@@ -45,6 +45,12 @@ public class AliasLivenessLassoTest extends ModelCheckerTestCase {
 		super("Alias", new String[] { "-config", "AliasLasso.cfg" }, EC.ExitStatus.VIOLATION_LIVENESS);
 	}
 
+	@Override
+	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
+
 	@Test
 	public void testSpec() {
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));

@@ -30,4 +30,10 @@ public class BidirectionalTransitions2CyTest extends BidirectionalTransitions2CT
 	public BidirectionalTransitions2CyTest() {
 		super("BidirectionalTransitions2Cy");
 	}
+
+	@Override
+	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
 }

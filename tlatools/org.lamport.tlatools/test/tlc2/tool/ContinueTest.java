@@ -43,6 +43,12 @@ public class ContinueTest extends ModelCheckerTestCase {
 		super("Continue", new String[] { "-continue" }, ExitStatus.SUCCESS);
 	}
 
+	@Override
+	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
+
 	@Test
 	public void testSpec() throws FileNotFoundException, IOException {
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));

@@ -43,6 +43,12 @@ public class SBBTest extends PCalModelCheckerTestCase {
 		super("SBB", "pcal", ExitStatus.VIOLATION_SAFETY);
 	}
 
+	// There is a bug which prevent us of running the generated TE spec, see SBBTETraceTest.
+	@Override
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
+
 	@Test
 	public void testSpec() {
 		assertTrue(recorder.recordedWithStringValue(EC.TLC_INIT_GENERATED1, "1"));

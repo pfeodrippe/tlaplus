@@ -80,6 +80,12 @@ public class BugzillaBug279Test extends ModelCheckerTestCase {
 	public BugzillaBug279Test() {
 		super("InitStateBug", "Bug279", ExitStatus.VIOLATION_DEADLOCK);
 	}
+
+	@Override
+	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
 	
 	@Override
 	protected boolean checkDeadLock() {
