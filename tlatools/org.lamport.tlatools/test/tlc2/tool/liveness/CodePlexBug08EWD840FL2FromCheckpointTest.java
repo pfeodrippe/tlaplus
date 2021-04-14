@@ -53,6 +53,11 @@ public class CodePlexBug08EWD840FL2FromCheckpointTest extends ModelCheckerTestCa
 		super("EWD840MC2", "CodePlexBug08", new String[] {"-gzip", "-recover", BASE_DIR + TEST_MODEL + "CodePlexBug08" + File.separator + "checkpoint"}, ExitStatus.VIOLATION_LIVENESS);
 	}
 	
+	@Override
+	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
 	
 	@Override
 	public void setUp() {

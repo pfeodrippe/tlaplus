@@ -46,6 +46,12 @@ public class ETest3 extends SuiteETestCase {
 		return true;
 	}
 
+	@Override
+	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
+
 	@Test
 	public void testSpec() {
 		assertTrue(recorder.recorded(EC.TLC_DEADLOCK_REACHED));

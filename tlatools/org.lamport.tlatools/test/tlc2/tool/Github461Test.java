@@ -43,6 +43,12 @@ public class Github461Test extends ModelCheckerTestCase {
 		super("Github461", EC.ExitStatus.VIOLATION_ASSERT);
 	}
 
+	@Override
+	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
+
 	@Test
 	public void testSpec() throws FileNotFoundException, IOException {
 		// Assert evaluation error.

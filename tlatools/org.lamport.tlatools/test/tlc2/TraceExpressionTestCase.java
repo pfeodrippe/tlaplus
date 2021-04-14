@@ -96,7 +96,7 @@ public abstract class TraceExpressionTestCase extends ModelCheckerTestCase {
         final TLCRunner tlcRunner = new TLCRunner(runnerArgs, outFile);
         TLCRunner.JVM_ARGUMENTS.add("-DTLC_TRACE_EXPLORER_TIMESTAMP=2000000000");
 
-        if (this.options.containsKey("expectedJsonPath")) {
+        if (this.options.containsKey("expectedJsonFile")) {
             TLCRunner.JVM_ARGUMENTS.add("-DTLC_TRACE_EXPLORER_JSON_UNCOMMENTED=true");
         }
 
@@ -115,13 +115,13 @@ public abstract class TraceExpressionTestCase extends ModelCheckerTestCase {
     }
 
     private void testJson() {
-        if (!this.options.containsKey("expectedJsonPath")) {
+        if (!this.options.containsKey("expectedJsonFile")) {
             return;
         }
 
         try {
             Gson gson = new Gson();
-            Object expectedJson = gson.fromJson(new FileReader((String)this.options.get("expectedJsonPath")), Object.class);
+            Object expectedJson = gson.fromJson(new FileReader(BASE_PATH + this.path + File.separator + (String)this.options.get("expectedJsonFile")), Object.class);
             Object jsonObject = gson.fromJson(new FileReader(System.getProperty("user.dir") + File.separator + this.TESpec + ".json"), Object.class);
             assertTrue(expectedJson.equals(jsonObject));
         } catch (FileNotFoundException exception) {
@@ -141,6 +141,11 @@ public abstract class TraceExpressionTestCase extends ModelCheckerTestCase {
         testJson();
         this.removeGeneratedFiles();
     }
+
+    @Override
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
 
     @Override
 	protected boolean doCoverage() {

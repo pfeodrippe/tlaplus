@@ -68,6 +68,11 @@ public abstract class TraceExpressionSpecTest extends ModelCheckerTestCase {
 		return false;
 	}
 
+	@Override
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
+
 	@Test
 	public void testSpec() throws Exception {
 		final Date timestamp = new Date(tlc.getStartTime());
