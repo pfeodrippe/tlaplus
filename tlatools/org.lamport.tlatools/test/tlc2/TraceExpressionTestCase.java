@@ -143,6 +143,13 @@ public abstract class TraceExpressionTestCase extends ModelCheckerTestCase {
     }
 
     @Override
+    // TODO: Well, this is something we want to test, so maybe we should create some
+    // other flag for this.
+    protected boolean noGenerateSpec() {
+        return true;
+    }
+
+    @Override
 	protected boolean doCoverage() {
 		// Do not do coverage or the code to avoid a bug,
 		// see https://github.com/tlaplus/tlaplus/pull/588#issuecomment-817371371.

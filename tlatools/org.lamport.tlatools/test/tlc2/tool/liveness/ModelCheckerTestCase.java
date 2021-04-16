@@ -28,6 +28,8 @@ package tlc2.tool.liveness;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +41,7 @@ import org.junit.Before;
 
 import tlc2.TLC;
 import tlc2.TLCGlobals;
+import tlc2.TLCRunner;
 import tlc2.TestMPRecorder;
 import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
@@ -48,6 +51,7 @@ import tlc2.tool.ModelChecker;
 import util.FileUtil;
 import util.FilenameToStream;
 import util.SimpleFilenameToStream;
+import util.TLAConstants;
 import util.ToolIO;
 
 public abstract class ModelCheckerTestCase extends CommonTestCase {
@@ -115,6 +119,10 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 		// will have the same suffix so it's easy to know beforehand the name of the
 		// file.
 		System.setProperty("TLC_TRACE_EXPLORER_TIMESTAMP", "2000000000");
+
+		// Generate TE spec with JSON generation uncommented so we can test with the original
+		// trace.
+		System.setProperty("TLC_TRACE_EXPLORER_JSON_UNCOMMENTED", "true");
 
 		try {
 			// TEST_MODEL is where TLC should look for user defined .tla files
@@ -220,10 +228,40 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 	protected void beforeTearDown() {
 		// No-op
 	}
+
+	protected void a() {
+		if (noGenerateSpec()) {
+			return;
+		}
+
+		final File outFile = new File(BASE_PATH, "test" + TLAConstants.Files.OUTPUT_EXTENSION);
+
+        List<String> runnerArgs = new ArrayList<>(Arrays.asList(new String[] {
+			BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000"
+		}));
+        runnerArgs.addAll(Arrays.asList(this.extraArguments));
+
+        final TLCRunner tlcRunner = new TLCRunner(runnerArgs, outFile);
+
+		/*if ((this.options.containsKey("LIVENESS_TESTING_IMPLEMENTATION") && (Boolean)this.options.get("LIVENESS_TESTING_IMPLEMENTATION") == true)) {
+            TLCRunner.JVM_ARGUMENTS.add("-Dtlc2.tool.liveness.ILiveCheck.testing=true");
+        }*/
+
+        try {
+            final int errorCode = tlcRunner.run();
+            if(errorCode != this.expectedExitStatus) {
+                fail(String.format("The output of the generate TE spec TLC run was not the expected exit status (%d), it was %d instead.", 
+				    this.expectedExitStatus, errorCode));
+            }
+        } catch (IOException exception) {
+            fail(exception.getMessage());
+        }
+	}
 	
 	@After
 	public void tearDown() {
 		beforeTearDown();
+		a();
 		
 		assertExitStatus();
 	}
