@@ -31,6 +31,10 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -229,9 +233,30 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 		// No-op
 	}
 
-	protected void a() {
-		if (noGenerateSpec()) {
+	protected void runTESpec() {
+		// If we don't generate a TE spec or if there is no error trace, we do nothing.
+		if (noGenerateSpec() || recorder.getRecords(EC.TLC_STATE_PRINT2) == null) {
 			return;
+		}
+
+		// Move generated files from their original location (user.dir) to the same folder
+		// as the original TLA spec so we can run the generated TE spec.
+		// First the TLA file.
+		Path sourcePath = Paths.get(System.getProperty("user.dir") + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.TLA_EXTENSION);
+		Path destPath = Paths.get(BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.TLA_EXTENSION);
+		try {
+			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException exception) {
+			//fail(Integer.toString(recorder.getRecords(EC.TLC_STATE_PRINT2).size()));
+			fail(exception.getMessage());
+		}
+		// Then the config file.
+		sourcePath = Paths.get(System.getProperty("user.dir") + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.CONFIG_EXTENSION);
+		destPath = Paths.get(BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.CONFIG_EXTENSION);
+		try {
+			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException exception) {
+			fail(exception.getMessage());
 		}
 
 		final File outFile = new File(BASE_PATH, "test" + TLAConstants.Files.OUTPUT_EXTENSION);
@@ -261,7 +286,7 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 	@After
 	public void tearDown() {
 		beforeTearDown();
-		a();
+		runTESpec();
 		
 		assertExitStatus();
 	}
