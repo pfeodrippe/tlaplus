@@ -269,7 +269,16 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 
 		final File outFile = new File(BASE_PATH, "test" + TLAConstants.Files.OUTPUT_EXTENSION);
 
-        List<String> runnerArgs = new ArrayList<>(Arrays.asList(this.extraArguments));
+		List<String> extraArgs = new ArrayList<String>(Arrays.asList(this.extraArguments));
+
+		// Remove undesired args for the TE spec runner (like a `-config` argument).
+	 	int configIdx = extraArgs.indexOf("-config");
+		if (configIdx >= 0) {
+			extraArgs.remove(configIdx + 1);
+			extraArgs.remove(configIdx);
+		}
+
+        List<String> runnerArgs = new ArrayList<String>(extraArgs);
 		runnerArgs.addAll(Arrays.asList(new String[] {
 			BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000"
 		}));

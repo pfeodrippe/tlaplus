@@ -30,10 +30,4 @@ public class BidirectionalTransitions1BxTest extends BidirectionalTransitions1BT
 	public BidirectionalTransitions1BxTest() {
 		super("BidirectionalTransitions1Bx.cfg");
 	}
-
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
 }
