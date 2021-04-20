@@ -46,12 +46,6 @@ public class AliasSafetySimuTest extends ModelCheckerTestCase {
 		super("Alias", new String[] { "-config", "Alias.tla", "-simulate", "num=1" }, EC.ExitStatus.VIOLATION_SAFETY);
 	}
 
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
-
 	@Test
 	public void testSpec() {
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));

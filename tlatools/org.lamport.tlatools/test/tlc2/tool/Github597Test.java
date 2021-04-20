@@ -42,12 +42,6 @@ public class Github597Test extends ModelCheckerTestCase {
 		super("dekker", new String[] { "-config", "dekker.tla" }, EC.ExitStatus.VIOLATION_LIVENESS);
 	}
 
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
-
 	protected boolean noRandomFPandSeed() {
 		return false;
 	}
