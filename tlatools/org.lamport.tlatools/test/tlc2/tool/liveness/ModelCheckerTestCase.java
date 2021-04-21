@@ -287,10 +287,6 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 
         final TLCRunner tlcRunner = new TLCRunner(runnerArgs, outFile);
 
-		/*if ((this.options.containsKey("LIVENESS_TESTING_IMPLEMENTATION") && (Boolean)this.options.get("LIVENESS_TESTING_IMPLEMENTATION") == true)) {
-            TLCRunner.JVM_ARGUMENTS.add("-Dtlc2.tool.liveness.ILiveCheck.testing=true");
-        }*/
-
         try {
             final int errorCode = tlcRunner.run();
             if(errorCode != this.expectedExitStatus) {
