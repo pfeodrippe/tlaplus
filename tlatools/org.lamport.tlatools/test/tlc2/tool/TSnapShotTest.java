@@ -41,6 +41,12 @@ public class TSnapShotTest extends ModelCheckerTestCase {
 	public TSnapShotTest() {
 		super(TLAConstants.Files.MODEL_CHECK_FILE_BASENAME, "TSnapShot", ExitStatus.FAILURE_SAFETY_EVAL);
 	}
+
+	@Override
+	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
 	
 	@Test
 	public void testSpec() {
