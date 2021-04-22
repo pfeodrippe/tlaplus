@@ -43,12 +43,6 @@ public class DoInitFunctorInvariantContinueTest extends ModelCheckerTestCase {
 		super("DoInitFunctorInvariantContinue", "DoInitFunctor", new String[] {"-continue"}/*, ExitStatus.VIOLATION_SAFETY*/);  //TODO The exit status is incorrect because TLC shows "no error" regardless of the number of violations with "-continue"
 	}
 
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
-
 	@Test
 	public void testSpec() {
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
