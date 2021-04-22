@@ -287,11 +287,19 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 
         final TLCRunner tlcRunner = new TLCRunner(runnerArgs, outFile);
 
-        try {
+		final int teExpectedStatus;
+		if (this.expectedExitStatus == ExitStatus.VIOLATION_DEADLOCK) {
+			// If we had a deadlock, the TE spec generates a exit status code of `VIOLATION_SAFETY`.
+			teExpectedStatus = ExitStatus.VIOLATION_SAFETY;
+		} else {
+			teExpectedStatus = this.expectedExitStatus;
+		}
+
+		try {
             final int errorCode = tlcRunner.run();
-            if(errorCode != this.expectedExitStatus) {
-                fail(String.format("The output of the generate TE spec TLC run was not the expected exit status (%d), it was %d instead.", 
-				    this.expectedExitStatus, errorCode));
+            if(errorCode != teExpectedStatus) {
+                fail(String.format("The output of the generated TE spec TLC run was not the expected exit status (%d), it was %d instead.", 
+					teExpectedStatus, errorCode));
             }
         } catch (IOException exception) {
             fail(exception.getMessage());
