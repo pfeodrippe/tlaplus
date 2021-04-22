@@ -248,31 +248,43 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 			return;
 		}
 
+		List<String> extraArgs = new ArrayList<String>(Arrays.asList(this.extraArguments));
+
 		// Move generated files from their original location (user.dir) to the same folder
 		// as the original TLA spec so we can run the generated TE spec.
 		// First the TLA file.
 		Path sourcePath = Paths.get(System.getProperty("user.dir") + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.TLA_EXTENSION);
+
+		// For cases where we have the `-continue` arg passed to TLC, we make sure that
+		// no TE spec was generated.
+		final int continueIdx = extraArgs.indexOf("-continue");
+		if (continueIdx >= 0) {
+			if (sourcePath.toFile().exists()) {
+				fail("No TE spec should be generated when a TLC arg is \"-continue\", but " + sourcePath.toString() + " was generated.");
+			}
+			return;
+		}
+
 		Path destPath = Paths.get(BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.TLA_EXTENSION);
 		try {
 			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException exception) {
-			fail(exception.getMessage());
+			fail(exception.toString());
 		}
-		// Then the config file.
+
+		// Then we move the config file.
 		sourcePath = Paths.get(System.getProperty("user.dir") + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.CONFIG_EXTENSION);
 		destPath = Paths.get(BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.CONFIG_EXTENSION);
 		try {
 			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException exception) {
-			fail(exception.getMessage());
+			fail(exception.toString());
 		}
 
 		final File outFile = new File(BASE_PATH, "test" + TLAConstants.Files.OUTPUT_EXTENSION);
 
-		List<String> extraArgs = new ArrayList<String>(Arrays.asList(this.extraArguments));
-
 		// Remove undesired args for the TE spec runner (like a `-config` argument).
-	 	int configIdx = extraArgs.indexOf("-config");
+	 	final int configIdx = extraArgs.indexOf("-config");
 		if (configIdx >= 0) {
 			extraArgs.remove(configIdx + 1);
 			extraArgs.remove(configIdx);
