@@ -91,6 +91,14 @@ public class TraceExplorationSpec {
 			List<String> variables,
 			MCError errorTrace,
 			ITool specInfo) {
+
+		// If TLC throwed an exception, it's possible that the trace to be generated
+		// be degenerated and in this case have only one state, so we don't want
+		// to handle these cases, besides, TE is not very useful for one state traces anyway.
+		if (TLCGlobals.throwedException && errorTrace.getStates().size() <= 1) {
+			return null;
+		}
+
 		String teSpecModuleName = deriveTESpecModuleName(ogModuleName, this.timestamp);
 		try (
 				OutputStream tlaStream = this.streamProvider.getTlaStream(teSpecModuleName);
