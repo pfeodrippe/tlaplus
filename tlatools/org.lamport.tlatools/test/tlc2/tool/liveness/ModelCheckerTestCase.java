@@ -255,6 +255,14 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 		// First the TLA file.
 		Path sourcePath = Paths.get(System.getProperty("user.dir") + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.TLA_EXTENSION);
 
+		// Check that no TE spec was generated for a throwed exception with at max one state.
+		if (TLCGlobals.throwedException && recorder.getRecords(EC.TLC_STATE_PRINT2).size() <= 1) {
+			if (sourcePath.toFile().exists()) {
+				fail("No TE spec should be generated for cases where an exception was thrown and the error trace has at max one state, but " + sourcePath.toString() + " was generated.");				
+			}
+			return;
+		}
+
 		// For cases where we have the `-continue` arg passed to TLC, we make sure that
 		// no TE spec was generated.
 		final int continueIdx = extraArgs.indexOf("-continue");

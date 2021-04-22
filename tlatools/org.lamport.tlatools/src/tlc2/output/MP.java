@@ -1504,6 +1504,7 @@ public class MP
      * @return
      */
     public static String ECGeneralMsg(String cause, Throwable throwable) {
+        TLCGlobals.throwedException = true;
         String msg = "TLC threw an unexpected exception.";
         msg = msg
                 + "\nThis was probably caused by an error in the spec or model.";
