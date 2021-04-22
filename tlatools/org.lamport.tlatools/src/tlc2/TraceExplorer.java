@@ -152,7 +152,7 @@ public class TraceExplorer {
 		// TODO: (Paulo) This processing should be moved to ModelConfig and a new
 		// getProcessedRawConstants (whatever) be added. Also, it warrants a (unit) test
 		// with extensive documentation of what is going on.
-		List<List<String>> constants= results
+		List<List<String>> constants = results
 			.getModelConfig()
 			.getRawConstants()
 			.stream()
