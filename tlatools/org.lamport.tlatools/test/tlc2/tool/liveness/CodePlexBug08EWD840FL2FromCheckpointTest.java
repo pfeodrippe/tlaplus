@@ -54,12 +54,6 @@ public class CodePlexBug08EWD840FL2FromCheckpointTest extends ModelCheckerTestCa
 	}
 	
 	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
-	
-	@Override
 	public void setUp() {
 		try {
 			/* Recreate checkpoint.zip whenever file format changes:
