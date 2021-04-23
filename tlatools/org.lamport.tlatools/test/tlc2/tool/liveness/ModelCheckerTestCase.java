@@ -325,10 +325,11 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
         final TLCRunner tlcRunner = new TLCRunner(runnerArgs, outFile);
 
 		final int teExpectedStatus;
-		if (this.expectedExitStatus == ExitStatus.VIOLATION_DEADLOCK ||
-			this.expectedExitStatus == ExitStatus.VIOLATION_ASSERT   ||
-			this.expectedExitStatus == ExitStatus.ERROR) {
-			// If we had a deadlock, a violation by assertion or an error, the TE spec generates a exit status code of `VIOLATION_SAFETY`.
+		if (this.expectedExitStatus == ExitStatus.VIOLATION_DEADLOCK  ||
+			this.expectedExitStatus == ExitStatus.VIOLATION_ASSERT    ||
+			this.expectedExitStatus == ExitStatus.ERROR               ||
+			this.expectedExitStatus == ExitStatus.FAILURE_SAFETY_EVAL) {
+			// Generally, for TE specs errors, the TE spec generates a exit status code of `VIOLATION_SAFETY`.
 			teExpectedStatus = ExitStatus.VIOLATION_SAFETY;
 		} else {
 			teExpectedStatus = this.expectedExitStatus;
