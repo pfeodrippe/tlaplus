@@ -107,11 +107,28 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 		// No-op
 	}
 
+	private String originalTESpecPath() {
+		return System.getProperty("user.dir") + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000";
+	}
+
+	private String clonedTESpecPath() {
+		return BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000";
+	}
+
+	private void removeGeneratedFiles() {
+        // Remove generated files, if any.
+        new File(originalTESpecPath() + TLAConstants.Files.TLA_EXTENSION).delete();
+        new File(originalTESpecPath() + TLAConstants.Files.CONFIG_EXTENSION).delete();
+        new File(clonedTESpecPath() + TLAConstants.Files.TLA_EXTENSION).delete();
+        new File(clonedTESpecPath() + TLAConstants.Files.CONFIG_EXTENSION).delete();
+    }
+
 	/* (non-Javadoc)
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	@Before
 	public void setUp() {
+		removeGeneratedFiles();
 		beforeSetUp();
 		
 		// some tests might want to access the liveness graph after model
@@ -253,7 +270,7 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 		// Move generated files from their original location (user.dir) to the same folder
 		// as the original TLA spec so we can run the generated TE spec.
 		// First the TLA file.
-		Path sourcePath = Paths.get(System.getProperty("user.dir") + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.TLA_EXTENSION);
+		Path sourcePath = Paths.get(originalTESpecPath() + TLAConstants.Files.TLA_EXTENSION);
 
 		// Check that no TE spec was generated for a throwed exception with at max one state.
 		if (TLCGlobals.throwedException && recorder.getRecords(EC.TLC_STATE_PRINT2).size() <= 1) {
@@ -273,7 +290,7 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 			return;
 		}
 
-		Path destPath = Paths.get(BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.TLA_EXTENSION);
+		Path destPath = Paths.get(clonedTESpecPath() + TLAConstants.Files.TLA_EXTENSION);
 		try {
 			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException exception) {
@@ -281,8 +298,8 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 		}
 
 		// Then we move the config file.
-		sourcePath = Paths.get(System.getProperty("user.dir") + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.CONFIG_EXTENSION);
-		destPath = Paths.get(BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000" + TLAConstants.Files.CONFIG_EXTENSION);
+		sourcePath = Paths.get(originalTESpecPath() + TLAConstants.Files.CONFIG_EXTENSION);
+		destPath = Paths.get(clonedTESpecPath() + TLAConstants.Files.CONFIG_EXTENSION);
 		try {
 			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException exception) {
@@ -300,7 +317,7 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 
         List<String> runnerArgs = new ArrayList<String>(extraArgs);
 		runnerArgs.addAll(Arrays.asList(new String[] {
-			BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000"
+			clonedTESpecPath()
 		}));
 
 		ToolIO.out.println("Running generated TE spec with args " + String.join(" ", runnerArgs));
@@ -323,7 +340,9 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
             }
         } catch (IOException exception) {
             fail(exception.getMessage());
-        }
+        } finally {
+			removeGeneratedFiles();
+		}
 	}
 	
 	@After
