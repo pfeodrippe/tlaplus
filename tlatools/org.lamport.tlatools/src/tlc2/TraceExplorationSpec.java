@@ -98,7 +98,7 @@ public class TraceExplorationSpec {
 		// Also, if TLC started from a checkpoint (`-recover`), we don't want to generate
 		// a TE spec.
 		if ((TLCGlobals.throwedException && errorTrace.getStates().size() <= 1) ||
-		    TLCGlobals.mainChecker.getFromChktp() != null) {
+			(TLCGlobals.mainChecker != null && TLCGlobals.mainChecker.getFromChktp() != null)) {
 			return null;
 		}
 

@@ -38,12 +38,6 @@ public class ETest8 extends SuiteETestCase {
 	public ETest8() {
 		super(new String[]{"-simulate"}, ExitStatus.ERROR /*ExitStatus.VIOLATION_ASSERT*/); //TODO Simulator doesn't report correct exit status.
 	}
-
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
 	
 	/* (non-Javadoc)
 	 * @see tlc2.tool.liveness.ModelCheckerTestCase#checkDeadLock()
