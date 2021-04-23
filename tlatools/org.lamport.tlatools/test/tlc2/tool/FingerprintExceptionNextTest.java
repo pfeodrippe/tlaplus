@@ -40,12 +40,6 @@ public class FingerprintExceptionNextTest extends ModelCheckerTestCase {
 		super("FingerprintExceptionNext", ExitStatus.FAILURE_SPEC_EVAL);
 	}
 
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
-
 	@Test
 	public void testSpec() {
 		// ModelChecker has finished with a general exception, a fingerprint exception and underlying overflow exception

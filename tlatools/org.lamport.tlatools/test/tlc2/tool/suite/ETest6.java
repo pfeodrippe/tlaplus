@@ -37,12 +37,6 @@ public class ETest6 extends SuiteETestCase {
 	public ETest6() {
 		super(ExitStatus.FAILURE_SPEC_EVAL);
 	}
-
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
 	
 	@Test
 	public void testSpec() {
