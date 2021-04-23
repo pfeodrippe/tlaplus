@@ -290,6 +290,16 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 			return;
 		}
 
+		// For cases where we have the `-recover` arg passed to TLC, we make sure that
+		// no TE spec was generated.
+		final int recoverIdx = extraArgs.indexOf("-recover");
+		if (recoverIdx >= 0) {
+			if (sourcePath.toFile().exists()) {
+				fail("No TE spec should be generated when a TLC arg is \"-recover\", but " + sourcePath.toString() + " was generated.");
+			}
+			return;
+		}
+
 		Path destPath = Paths.get(clonedTESpecPath() + TLAConstants.Files.TLA_EXTENSION);
 		try {
 			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);

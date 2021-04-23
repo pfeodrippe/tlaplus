@@ -95,7 +95,10 @@ public class TraceExplorationSpec {
 		// If TLC throwed an exception, it's possible that the trace to be generated
 		// be degenerated and in this case have only one state, so we don't want
 		// to handle these cases, besides, TE is not very useful for one state traces anyway.
-		if (TLCGlobals.throwedException && errorTrace.getStates().size() <= 1) {
+		// Also, if TLC started from a checkpoint (`-recover`), we don't want to generate
+		// a TE spec.
+		if ((TLCGlobals.throwedException && errorTrace.getStates().size() <= 1) ||
+		    TLCGlobals.mainChecker.getFromChktp() != null) {
 			return null;
 		}
 

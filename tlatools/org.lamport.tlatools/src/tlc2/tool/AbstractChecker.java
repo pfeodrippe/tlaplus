@@ -599,4 +599,8 @@ public abstract class AbstractChecker
 	public long getStatesGenerated() {
 		return -1;
 	}
-}
+
+    public final String getFromChktp() {
+        return this.fromChkpt;
+    }
+ }
