@@ -46,12 +46,6 @@ public abstract class AbstractExampleTestCase extends ModelCheckerTestCase {
 		// go on forever.
 		super(cfg, "simulation", new String[] { "-simulate", "-depth", "11" }, ExitStatus.VIOLATION_LIVENESS);
 	}
-
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
 	
 	@Test
 	public void testSpec() {
