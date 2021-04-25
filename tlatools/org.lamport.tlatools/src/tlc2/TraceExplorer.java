@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import tlc2.input.MCOutputParser;
 import tlc2.input.MCOutputPipeConsumer;
@@ -152,18 +150,7 @@ public class TraceExplorer {
 		// TODO: (Paulo) This processing should be moved to ModelConfig and a new
 		// getProcessedRawConstants (whatever) be added. Also, it warrants a (unit) test
 		// with extensive documentation of what is going on.
-		List<List<String>> constants = results
-			.getModelConfig()
-			.getRawConstants()
-			.stream()
-			.map(s -> s.split("\n"))
-			.flatMap(Stream::of)
-			.map(s -> s.trim())			
-			.filter(s -> !(s.equals("CONSTANT") || s.equals("CONSTANTS")))
-			// We can set by `=` or `<-`, we only split for the first as the last is
-			// a replacement and we don't need to deal with it.
-			.map(s -> Arrays.asList(s.split("=")))
-			.collect(Collectors.toList());	
+		List<List<String>> constants = results.getModelConfig().getConstantsAsList();
 
 		// Get all reified constants;
 		List<String> reifiedConstants = new ArrayList<String>();		
@@ -208,7 +195,7 @@ public class TraceExplorer {
 				if(keyValuePair.size() > 1) {
 					String key = keyValuePair.get(0).toString();
 					String value = keyValuePair.get(1).toString();
-					indentedConstants.add(SpecTraceExpressionWriter.indentString(String.format("%s=%s", key, value), 1));
+					indentedConstants.add(SpecTraceExpressionWriter.indentString(String.format("%s = %s", key, value), 1));
 				} else {
 					String line = keyValuePair.get(0).toString();
 					indentedConstants.add(SpecTraceExpressionWriter.indentString(line, 1));
