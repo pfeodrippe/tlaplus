@@ -318,11 +318,20 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 
 		final File outFile = new File(BASE_PATH, "test" + TLAConstants.Files.OUTPUT_EXTENSION);
 
-		// Remove undesired args for the TE spec runner (like a `-config` argument).
+		// Remove undesired args for the TE spec runner (like the `-config` argument).
 	 	final int configIdx = extraArgs.indexOf("-config");
 		if (configIdx >= 0) {
 			extraArgs.remove(configIdx + 1);
 			extraArgs.remove(configIdx);
+		}
+		final int simulateIdx = extraArgs.indexOf("-simulate");
+		if (simulateIdx >= 0) {
+			// We can have `file=` or `num=` as simulate arguments (or both), let's search for them.
+			if (simulateIdx + 1 < extraArgs.size() &&
+			    (extraArgs.get(simulateIdx + 1).contains("file=") || extraArgs.get(simulateIdx + 1).contains("num="))) {
+				extraArgs.remove(simulateIdx + 1);
+			}
+			extraArgs.remove(simulateIdx);
 		}
 
         List<String> runnerArgs = new ArrayList<String>(extraArgs);

@@ -56,12 +56,6 @@ public class LiveCheckSimulationTest2a extends ModelCheckerTestCase {
 		// Stop after 100 traces due to lack of general timeout regardless of outcome
 		TLC.setTraceNum(100);
 	}
-
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean noGenerateSpec() {
-		return true;
-	}
 	
 	@Test
 	public void testSpec() {

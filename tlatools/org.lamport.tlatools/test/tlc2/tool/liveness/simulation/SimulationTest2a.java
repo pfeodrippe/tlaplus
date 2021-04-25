@@ -47,12 +47,6 @@ public class SimulationTest2a extends ModelCheckerTestCase {
 	public SimulationTest2a() {
 		super("Test2a", "/", new String[] {"-simulate", "-depth", "6"}, ExitStatus.VIOLATION_LIVENESS);
 	}
-
-	@Override
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean noGenerateSpec() {
-		return true;
-	}
 	
 	@Test
 	public void testSpec() {
