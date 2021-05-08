@@ -46,6 +46,13 @@ public class AliasSafetySimuTest extends ModelCheckerTestCase {
 		super("Alias", new String[] { "-config", "Alias.tla", "-simulate", "num=1" }, EC.ExitStatus.VIOLATION_SAFETY);
 	}
 
+	// ALIAS modifies the output of the original spec, do we need to worry
+	// about these cases and also create a ALIAS in our TE spec?
+	@Override	
+	protected boolean doNotTestTESpec() {
+		return true;
+	}
+
 	@Test
 	public void testSpec() {
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
