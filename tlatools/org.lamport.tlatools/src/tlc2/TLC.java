@@ -30,6 +30,7 @@ import tlc2.output.EC;
 import tlc2.output.ErrorTraceMessagePrinterRecorder;
 import tlc2.output.MP;
 import tlc2.output.Messages;
+import tlc2.output.SerializableMessagePrinterRecorder;
 import tlc2.tool.DFIDModelChecker;
 import tlc2.tool.ITool;
 import tlc2.tool.ModelChecker;
@@ -188,6 +189,11 @@ public class TLC {
      * Records errors as TLC runs.
      */
     private final ErrorTraceMessagePrinterRecorder recorder = new ErrorTraceMessagePrinterRecorder();
+
+    /**
+     * Records output as serializable data.
+     */
+    private final SerializableMessagePrinterRecorder serializableRecorder = new SerializableMessagePrinterRecorder();
     
     /**
      * Trace exploration spec generator.
@@ -1026,6 +1032,13 @@ public class TLC {
     public int process()
     {
     	MP.setRecorder(this.recorder);
+
+        // This recorder records everything and converts it to a serializable format
+        // so it can be stored in a `.ser` file later.
+        if (System.getProperty("TLC_CREATE_SERIALIZED_OUTPUT_FILE") != null) {            
+            MP.setRecorder(this.serializableRecorder);
+        }        
+
         // UniqueString.initialize();
         
         // a JMX wrapper that exposes runtime statistics 
@@ -1161,6 +1174,11 @@ public class TLC {
 			if (teSpec != null) {
 				teSpec.generate(this.tool);
 			}
+
+            // Serialize output to a file.
+            if (System.getProperty("TLC_CREATE_SERIALIZED_OUTPUT_FILE") != null) {
+                this.serializableRecorder.serializeTo(System.getProperty("TLC_CREATE_SERIALIZED_OUTPUT_FILE"));
+            }
 
 			MP.unsubscribeRecorder(this.recorder);
 			MP.flush();
