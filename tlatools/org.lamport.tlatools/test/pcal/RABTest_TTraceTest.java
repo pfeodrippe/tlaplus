@@ -30,22 +30,23 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Test;
 
-import tlc2.TraceExpressionTestCase;
 import tlc2.output.EC;
+import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public class RABTETraceTest extends TraceExpressionTestCase {
+public class RABTest_TTraceTest extends ModelCheckerTestCase {
 
-	public RABTETraceTest() {
-		super("RAB", "pcal", new String[] {}, EC.ExitStatus.VIOLATION_SAFETY,
-            new HashMap<String, Object>() {{
-                put("expectedJsonFile", "RAB_TTrace_2000000000_Expected.json");
-            }});
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
+
+	public RABTest_TTraceTest() {
+		super("RAB" + teSpecSuffix, "pcal", EC.ExitStatus.VIOLATION_SAFETY);
+	}    
 
 	@Test
 	public void testSpec() {

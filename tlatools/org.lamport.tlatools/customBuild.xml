@@ -498,6 +498,7 @@
 					<exclude name="tlc2/tool/UserModuleOverrideAnnotationTest.java" />
 					
 					<exclude name="**/PCalTest.java" />
+					<exclude name="**/*_TTraceTest.java" />
 					<exclude name="**/CommonTestCase.java" />
 					<exclude name="**/ModelCheckerTestCase.java" />
 					<exclude name="**/TLCDebuggerTestCase.java" />
@@ -532,6 +533,12 @@
 					<exclude name="**/DetlefsTest.java" />
 					<exclude name="**/StarkMutexTest.java" />
 					<exclude name="**/SimpleMultiProcTest.java" />
+				</fileset>
+			</batchtest>
+			<batchtest fork="yes" todir="${test.reports}">
+				<fileset dir="${test.dir}">
+					<!-- Run TTrace tests after the original tests are run -->	
+					<include name="**/*_TTraceTest.java" />
 				</fileset>
 			</batchtest>
 			<batchtest fork="yes" todir="${test.reports}">
@@ -676,6 +683,7 @@
 						<exclude name="tlc2/tool/UserModuleOverrideAnnotationTest.java" />
 												
 						<exclude name="**/PCalTest.java" />
+						<exclude name="**/*_TTraceTest.java" />
 						<exclude name="**/CommonTestCase.java" />
 						<exclude name="**/ModelCheckerTestCase.java" />
 						<exclude name="**/TLCDebuggerTestCase.java" />
@@ -714,6 +722,12 @@
 						     model-checking. It fails with this target but passes with test.  I assume
 						     this is because test-dist records coverage, which, perhaps, interferes with inlining. -->
 						<exclude name="**/InliningTest.java" />
+					</fileset>
+				</batchtest>
+				<batchtest fork="yes" todir="${test.reports}">
+					<fileset dir="${test.dir}">
+						<!-- Run TTrace tests after the original tests are run -->	
+						<include name="**/*_TTraceTest.java" />
 					</fileset>
 				</batchtest>
 				<batchtest fork="yes" todir="${test.reports}">

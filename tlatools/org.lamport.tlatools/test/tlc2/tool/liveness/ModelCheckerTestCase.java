@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 
 import tlc2.TLC;
@@ -65,6 +66,8 @@ import util.TLAConstants;
 import util.ToolIO;
 
 public abstract class ModelCheckerTestCase extends CommonTestCase {
+
+	protected final static String teSpecSuffix = "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000";
 	
 	protected String path = "";
 	protected String spec;
@@ -113,21 +116,63 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 		// No-op
 	}
 
+	// Use it to indicate that the test will read the generated
+	// TE spec file instead of running the original spec.
+	protected boolean isTESpec() {
+		return false;
+	}
+
 	private String originalTESpecPath() {
-		return System.getProperty("user.dir") + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000";
+		return System.getProperty("user.dir") + File.separator + this.spec;
 	}
 
 	private String clonedTESpecPath() {
-		return BASE_PATH + this.path + File.separator + this.spec + "_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_2000000000";
+		return BASE_PATH + this.path + File.separator + this.spec;
+	}	
+
+	private void checkTESpecAssumption() {
+		Path sourcePath = Paths.get(originalTESpecPath() + TLAConstants.Files.TLA_EXTENSION);
+		Path destPath = Paths.get(clonedTESpecPath() + TLAConstants.Files.TLA_EXTENSION);
+
+		// First check if the file is already moved to the correct path.
+		// If it doesn't, check with `Assume` that the generated file exists
+		// in the original path.
+		if (destPath.toFile().isFile()) {
+			return;
+		} else {
+			Assume.assumeTrue("No TE spec was generated, please run test with original spec", sourcePath.toFile().isFile());
+		}
 	}
 
-	private void removeGeneratedFiles() {
+	private void moveTESpecFiles() {
+		// Move generated files from their original location (user.dir) to the same folder
+		// as the original TLA spec so we can run the generated TE spec.
+		// First the TLA file.
+		Path sourcePath = Paths.get(originalTESpecPath() + TLAConstants.Files.TLA_EXTENSION);
+		Path destPath = Paths.get(clonedTESpecPath() + TLAConstants.Files.TLA_EXTENSION);	
+		
+		try {
+			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException exception) {
+			fail(exception.toString());
+		}
+
+		// Then we move the config file.
+		sourcePath = Paths.get(originalTESpecPath() + TLAConstants.Files.CONFIG_EXTENSION);
+		destPath = Paths.get(clonedTESpecPath() + TLAConstants.Files.CONFIG_EXTENSION);
+		try {
+			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException exception) {
+			fail(exception.toString());
+		}
+	}
+
+	private void removeGeneratedFiles(String originalPath, String clonedPath) {
         // Remove generated files, if any.
-        new File(originalTESpecPath() + TLAConstants.Files.TLA_EXTENSION).delete();
-        new File(originalTESpecPath() + TLAConstants.Files.CONFIG_EXTENSION).delete();
-        new File(clonedTESpecPath() + TLAConstants.Files.TLA_EXTENSION).delete();
-        new File(clonedTESpecPath() + TLAConstants.Files.CONFIG_EXTENSION).delete();
-        new File(BASE_PATH + "tlc_output.ser").delete();
+        new File(originalPath + TLAConstants.Files.TLA_EXTENSION).delete();
+        new File(originalPath + TLAConstants.Files.CONFIG_EXTENSION).delete();
+        new File(clonedPath + TLAConstants.Files.TLA_EXTENSION).delete();
+        new File(clonedPath + TLAConstants.Files.CONFIG_EXTENSION).delete();
     }
 
 	/* (non-Javadoc)
@@ -135,8 +180,18 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 	 */
 	@Before
 	public void setUp() {
-		removeGeneratedFiles();
-		beforeSetUp();
+		if (!isTESpec()) {
+			// Remove any generated file before running a original spec.
+			removeGeneratedFiles(originalTESpecPath() + teSpecSuffix, clonedTESpecPath() + teSpecSuffix);
+		} else {
+			checkTESpecAssumption();
+			
+			// If it's a TE spec run, move TE spec files so they are in the
+			// correct path.
+			moveTESpecFiles();			
+		}
+
+		beforeSetUp();		
 		
 		// some tests might want to access the liveness graph after model
 		// checking completed. Thus, prevent the liveness graph from being
@@ -382,9 +437,7 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 
 		} catch (IOException exception) {
             fail(exception.getMessage());
-        } finally {
-			removeGeneratedFiles();
-		}
+        } 
 	}
 
 	private void checkTESpecTraceFromSerializedFile(String serFilePath, boolean canCheckInitPred) {
@@ -438,6 +491,12 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 	
 	@After
 	public void tearDown() {
+		// Also check assumption in `@After` as it does not skip
+		// if `@Before` fails.
+		if (isTESpec()) {
+			checkTESpecAssumption();
+		}		
+		
 		beforeTearDown();
 		
 		assertExitStatus();
