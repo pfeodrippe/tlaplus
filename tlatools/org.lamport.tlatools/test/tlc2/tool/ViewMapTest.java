@@ -45,10 +45,6 @@ public class ViewMapTest extends ModelCheckerTestCase {
 
 	// VIEW modifies the output of the original spec (is it a poor's man ALIAS?), do we need to worry
 	// about these cases and also create a VIEW in our TE spec?
-	@Override	
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
 
 	@Test
 	public void testSpec() {

@@ -48,10 +48,6 @@ public class AliasSafetySimuTest extends ModelCheckerTestCase {
 
 	// ALIAS modifies the output of the original spec, do we need to worry
 	// about these cases and also create a ALIAS in our TE spec?
-	@Override	
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
 
 	@Test
 	public void testSpec() {

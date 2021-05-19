@@ -43,12 +43,8 @@ public class Github597Test extends ModelCheckerTestCase {
 	}
 
 	// Every run of this test generates a different trace, but the TE spec should replicate it anyway, 
-	// which it's not happening. The TE spec has the right trace, but the lasso is most of the tests runs
-	// shorter than the original one. Have to check this!
-	@Override	
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
+	// which it's not happening. The TE spec has the right trace, but the lasso in most of the tests runs
+	// shorter than the original one.
 
 	protected boolean noRandomFPandSeed() {
 		return false;

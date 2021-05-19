@@ -44,12 +44,8 @@ public class IncompleteNextTest extends ModelCheckerTestCase {
 	public IncompleteNextTest() {
 		super("IncompleteNext", ExitStatus.FAILURE_SPEC_EVAL);
 	}
-
-	@Override
+	
 	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
 
 	@Test
 	public void testSpec() {

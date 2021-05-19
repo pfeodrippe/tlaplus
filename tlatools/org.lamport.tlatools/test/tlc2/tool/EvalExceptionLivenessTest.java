@@ -40,11 +40,7 @@ public class EvalExceptionLivenessTest extends ModelCheckerTestCase {
         super("DistBakery3aAuxMC", new String[] { "-config", "DistBakery3aAuxMC.tla" }, EC.ExitStatus.ERROR);
     }
 
-	@Override
 	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
 
     @Override
 	protected boolean doCoverage() {

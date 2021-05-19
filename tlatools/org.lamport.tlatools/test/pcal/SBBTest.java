@@ -44,10 +44,6 @@ public class SBBTest extends PCalModelCheckerTestCase {
 	}
 
 	// There is a bug which prevent us of running the generated TE spec, see SBBTETraceTest.
-	@Override
-	protected boolean doNotTestTESpec() {
-		return true;
-	}
 
 	@Test
 	public void testSpec() {
