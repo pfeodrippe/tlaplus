@@ -34,24 +34,35 @@ import java.util.List;
 
 import org.junit.Test;
 
-import tlc2.TraceExpressionTestCase;
 import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
+import tlc2.tool.AbstractChecker;
 
 /**
- * System LOOP as described by Manna & Pneuli on page 423ff
+ * Identical to {@link LoopTest}, except that liveness checking uses
+ * {@link AddAndCheckLiveCheck}. This way, TLC correctly produces the shortest
+ * possible counterexample.
  */
-public class LoopTETraceTest extends TraceExpressionTestCase {
+public class LoopTestForcedPartial_TTraceTest extends ModelCheckerTestCase {
+
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
 	
-	public LoopTETraceTest() {
-		super("SystemLoop", "Loop", ExitStatus.VIOLATION_LIVENESS);
+	static {
+		AbstractChecker.LIVENESS_TESTING_IMPLEMENTATION = true;
+	}
+	
+	public LoopTestForcedPartial_TTraceTest() {
+		super("SystemLoop" + teSpecSuffix, "Loop", ExitStatus.VIOLATION_LIVENESS);
 	}
 
 	@Test
 	public void testSpec() {
 		// ModelChecker has finished and generated the expected amount of states
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "3", "3", "0"));
+        assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "1", "1", "0"));
 		assertTrue(recorder.recordedWithStringValue(EC.TLC_INIT_GENERATED1, "1"));
 		assertFalse(recorder.recorded(EC.GENERAL));
 
@@ -63,22 +74,9 @@ public class LoopTETraceTest extends TraceExpressionTestCase {
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
 		final List<String> expectedTrace = new ArrayList<String>(4);
 		expectedTrace.add("x = 0");
-		expectedTrace.add("x = 1");
-		expectedTrace.add("x = 2");
 		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
 		
-		// Without any fairness defined, state 4 is stuttering instead of moving
-		// on to state x=3.
-		assertStuttering(4);
-		
-		//TODO This error trace is not the shortest one. The shortest one would
-		// be stuttering after the initial state x=0 and not after x=2 with x=3
-		// as the last successor in the behavior. However, the SCC search
-		// implemented in LiveWorker#checkSccs checks the path end to start and
-		// not start to end.
-		// If liveness is (forcefully) triggered after the initial state, stuttering
-		// after the initial state is correctly detected.
-
-		assertZeroUncovered();
+		// Stuttering after the init state.
+		assertStuttering(2);
 	}
 }

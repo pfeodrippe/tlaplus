@@ -149,7 +149,12 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 		// as the original TLA spec so we can run the generated TE spec.
 		// First the TLA file.
 		Path sourcePath = Paths.get(originalTESpecPath() + TLAConstants.Files.TLA_EXTENSION);
-		Path destPath = Paths.get(clonedTESpecPath() + TLAConstants.Files.TLA_EXTENSION);	
+		Path destPath = Paths.get(clonedTESpecPath() + TLAConstants.Files.TLA_EXTENSION);
+
+		// Check if the file is already moved to the correct path.
+		if (destPath.toFile().isFile()) {
+			return;
+		}
 		
 		try {
 			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);

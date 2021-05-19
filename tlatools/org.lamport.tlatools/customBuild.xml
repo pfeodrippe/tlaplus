@@ -504,7 +504,6 @@
 					<exclude name="**/TLCDebuggerTestCase.java" />
 					<exclude name="**/PCalModelCheckerTestCase.java" />
 					<exclude name="**/TraceExpressionSpecTest.java" />
-					<exclude name="**/TraceExpressionTestCase.java" />
 					<exclude name="**/TraceExpressionSpecSafetyTest.java" />
 					<exclude name="**/SuiteTestCase.java" />
 					<exclude name="**/SuiteETestCase.java" />
@@ -689,7 +688,6 @@
 						<exclude name="**/TLCDebuggerTestCase.java" />
 						<exclude name="**/PCalModelCheckerTestCase.java" />
 						<exclude name="**/TraceExpressionSpecTest.java" />
-						<exclude name="**/TraceExpressionTestCase.java" />
 						<exclude name="**/TraceExpressionSpecSafetyTest.java" />
 						<exclude name="**/SuiteTestCase.java" />
 						<exclude name="**/SuiteETestCase.java" />

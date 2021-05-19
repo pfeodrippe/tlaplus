@@ -34,45 +34,53 @@ import java.util.List;
 
 import org.junit.Test;
 
-import tlc2.TraceExpressionTestCase;
 import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
+import tlc2.tool.TLCStateInfo;
 
-/**
- * see http://tlaplus.codeplex.com/workitem/8
- */
-public class CodePlexBug08EWD840FL4TETraceTest extends TraceExpressionTestCase {
+public class ChooseTableauSymmetryTestA_TTraceTest extends ModelCheckerTestCase {
 
-	public CodePlexBug08EWD840FL4TETraceTest() {
-		super("EWD840MC4", "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public ChooseTableauSymmetryTestA_TTraceTest() {
+		super("ChooseTableauSymmetryMCa" + teSpecSuffix, "symmetry", ExitStatus.VIOLATION_LIVENESS);
 	}
 	
 	@Test
 	public void testSpec() {
-		// ModelChecker has finished and generated the expected amount of states
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2", "2", "0"));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "6", "5", "0"));
 		assertFalse(recorder.recorded(EC.GENERAL));
-		
+
 		// Assert it has found the temporal violation and also a counter example
 		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
 		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
 
 		// Assert the error trace
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
-		final List<String> expectedTrace = new ArrayList<String>();
-		expectedTrace.add("/\\ tpos = 0\n"
-				   + "/\\ active = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)\n"
-				   + "/\\ tcolor = \"black\"\n"
-				   + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
-		expectedTrace.add("/\\ tpos = 3\n"
-				   + "/\\ active = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)\n"
-				   + "/\\ tcolor = \"white\"\n"
-				   + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
-		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
+		final List<String> expectedTrace = new ArrayList<String>(7);
+		// Trace prefix
+		expectedTrace.add("arr = (a :> \"ready\" @@ b :> \"ready\")");
+		expectedTrace.add("arr = (a :> \"busy\" @@ b :> \"ready\")");
+		expectedTrace.add("arr = (a :> \"busy\" @@ b :> \"busy\")");
+		expectedTrace.add("arr = (a :> \"done\" @@ b :> \"busy\")");
+		expectedTrace.add("arr = (a :> \"ready\" @@ b :> \"busy\")");
 		
-		// state 3 is stuttering
-		assertStuttering(3);
+		final List<String> expectedActions = new ArrayList<>();
+		expectedActions.add(isExtendedTLCState()
+				? "<_init line 23, col 5 to line 23, col 28 of module ChooseTableauSymmetryMCa_TTrace_2000000000>"
+				: TLCStateInfo.INITIAL_PREDICATE);
+		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
+		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
+		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
+		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
+		
+		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace, expectedActions);
+		
+		assertBackToState(3, "<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
 
 	assertZeroUncovered();
 	}

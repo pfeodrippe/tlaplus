@@ -34,39 +34,49 @@ import java.util.List;
 
 import org.junit.Test;
 
-import tlc2.TraceExpressionTestCase;
 import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
+import util.TLAConstants;
 
-public class ChooseTableauSymmetryATETraceTest extends TraceExpressionTestCase {
+/**
+ * see http://tlaplus.codeplex.com/workitem/8
+ */
+public class CodePlexBug08Test_TTraceTest extends ModelCheckerTestCase {
 
-	public ChooseTableauSymmetryATETraceTest() {
-		super("ChooseTableauSymmetryMCa", "symmetry", ExitStatus.VIOLATION_LIVENESS);
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public CodePlexBug08Test_TTraceTest() {
+		super(TLAConstants.Files.MODEL_CHECK_FILE_BASENAME + teSpecSuffix, "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
 	}
 	
 	@Test
 	public void testSpec() {
+		// ModelChecker has finished and generated the expected amount of states
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "6", "5", "0"));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "6", "6", "0"));
 		assertFalse(recorder.recorded(EC.GENERAL));
-
+	
 		// Assert it has found the temporal violation and also a counter example
 		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
 		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
-
+		
+		assertNodeAndPtrSizes(164L, 96L);
+		
 		// Assert the error trace
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
-		final List<String> expectedTrace = new ArrayList<String>(7);
-		// Trace prefix
-		expectedTrace.add("arr = (a :> \"ready\" @@ b :> \"ready\")");
-		expectedTrace.add("arr = (a :> \"busy\" @@ b :> \"ready\")");
-		expectedTrace.add("arr = (a :> \"busy\" @@ b :> \"busy\")");
-		expectedTrace.add("arr = (a :> \"done\" @@ b :> \"busy\")");
-		expectedTrace.add("arr = (a :> \"ready\" @@ b :> \"busy\")");
-		
-		// Remove expected actions here (in comparison with the original test).
-		
-		assertBackToState(3, "<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
+		final List<String> expectedTrace = new ArrayList<String>(4);
+		expectedTrace.add("/\\ b = FALSE\n/\\ x = 2");
+		expectedTrace.add("/\\ b = TRUE\n/\\ x = 3");
+		expectedTrace.add("/\\ b = FALSE\n/\\ x = 3");
+		expectedTrace.add("/\\ b = TRUE\n/\\ x = 4");
+		expectedTrace.add("/\\ b = FALSE\n/\\ x = 4");
+		expectedTrace.add("/\\ b = TRUE\n/\\ x = 5");
+		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
+
+		assertStuttering(7);
 
 	assertZeroUncovered();
 	}

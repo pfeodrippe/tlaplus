@@ -34,45 +34,51 @@ import java.util.List;
 
 import org.junit.Test;
 
-import tlc2.TraceExpressionTestCase;
 import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
 
 /**
  * see http://tlaplus.codeplex.com/workitem/8
  */
-public class CodePlexBug08aTETraceTest extends TraceExpressionTestCase {
+public class CodePlexBug08EWD840FL4Test_TTraceTest extends ModelCheckerTestCase {
 
-	public CodePlexBug08aTETraceTest() {
-		super("MCa", "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public CodePlexBug08EWD840FL4Test_TTraceTest() {
+		super("EWD840MC4" + teSpecSuffix, "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
 	}
 	
 	@Test
 	public void testSpec() {
 		// ModelChecker has finished and generated the expected amount of states
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "8", "8", "0"));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2", "2", "0"));
 		assertFalse(recorder.recorded(EC.GENERAL));
 		
 		// Assert it has found the temporal violation and also a counter example
 		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
 		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
 		
+		assertNodeAndPtrSizes(52L, 32L);
+		
 		// Assert the error trace
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
-		final List<String> expectedTrace = new ArrayList<String>(4);
-		expectedTrace.add("/\\ b = FALSE\n/\\ x = 1");
-		expectedTrace.add("/\\ b = TRUE\n/\\ x = 2");
-		expectedTrace.add("/\\ b = FALSE\n/\\ x = 2");
-		expectedTrace.add("/\\ b = TRUE\n/\\ x = 3");
-		expectedTrace.add("/\\ b = FALSE\n/\\ x = 3");
-		expectedTrace.add("/\\ b = TRUE\n/\\ x = 4");
-		expectedTrace.add("/\\ b = FALSE\n/\\ x = 4");
-		expectedTrace.add("/\\ b = TRUE\n/\\ x = 5");
+		final List<String> expectedTrace = new ArrayList<String>();
+		expectedTrace.add("/\\ tpos = 0\n"
+				   + "/\\ active = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)\n"
+				   + "/\\ tcolor = \"black\"\n"
+				   + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
+		expectedTrace.add("/\\ tpos = 3\n"
+				   + "/\\ active = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)\n"
+				   + "/\\ tcolor = \"white\"\n"
+				   + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
 		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
 		
-		// Assert the error trace contains a stuttering step at position 5
-		assertStuttering(9);
+		// state 3 is stuttering
+		assertStuttering(3);
 
 	assertZeroUncovered();
 	}
