@@ -63,7 +63,7 @@ public class LoopTest_TTraceTest extends ModelCheckerTestCase {
 		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
 		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
 		
-		assertNodeAndPtrSizes(136L, 64L);
+		assertNodeAndPtrSizes(80L, 48L);
 
 		// Assert the error trace
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
