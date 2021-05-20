@@ -47,7 +47,7 @@ public class SBBTest_TTraceTest extends ModelCheckerTestCase {
 	}
 
 	public SBBTest_TTraceTest() {
-		super("SBB" + teSpecSuffix, "pcal", ExitStatus.VIOLATION_SAFETY);
+		super("SBB", "pcal", ExitStatus.VIOLATION_SAFETY);
 	}
 
     /*

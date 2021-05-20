@@ -45,7 +45,7 @@ public class RABTest_TTraceTest extends ModelCheckerTestCase {
 	}
 
 	public RABTest_TTraceTest() {
-		super("RAB" + teSpecSuffix, "pcal", EC.ExitStatus.VIOLATION_SAFETY);
+		super("RAB", "pcal", EC.ExitStatus.VIOLATION_SAFETY);
 	}    
 
 	@Test

@@ -48,7 +48,7 @@ public class LoopTest_TTraceTest extends ModelCheckerTestCase {
 	}
 	
 	public LoopTest_TTraceTest() {
-		super("SystemLoop" + teSpecSuffix, "Loop", ExitStatus.VIOLATION_LIVENESS);
+		super("SystemLoop", "Loop", ExitStatus.VIOLATION_LIVENESS);
 	}
 
 	@Test

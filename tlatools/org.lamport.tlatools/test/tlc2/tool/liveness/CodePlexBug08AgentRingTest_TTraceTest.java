@@ -48,7 +48,7 @@ public class CodePlexBug08AgentRingTest_TTraceTest extends ModelCheckerTestCase 
 	}
 
 	public CodePlexBug08AgentRingTest_TTraceTest() {
-		super("AgentRingMC" + teSpecSuffix, "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
+		super("AgentRingMC", "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
 	}
 	
 	@Test

@@ -46,7 +46,7 @@ public class ChooseTableauSymmetryTestA_TTraceTest extends ModelCheckerTestCase 
 	}
 
 	public ChooseTableauSymmetryTestA_TTraceTest() {
-		super("ChooseTableauSymmetryMCa" + teSpecSuffix, "symmetry", ExitStatus.VIOLATION_LIVENESS);
+		super("ChooseTableauSymmetryMCa", "symmetry", ExitStatus.VIOLATION_LIVENESS);
 	}
 	
 	@Test
@@ -71,16 +71,16 @@ public class ChooseTableauSymmetryTestA_TTraceTest extends ModelCheckerTestCase 
 		
 		final List<String> expectedActions = new ArrayList<>();
 		expectedActions.add(isExtendedTLCState()
-				? "<_init line 23, col 5 to line 23, col 28 of module ChooseTableauSymmetryMCa_TTrace_2000000000>"
+				? "<_init line 23, col 5 to line 23, col 28 of module ChooseTableauSymmetryMCa_TTrace_2000000000_tlc2_tool_liveness_ChooseTableauSymmetryTestA_TTraceTest>"
 				: TLCStateInfo.INITIAL_PREDICATE);
-		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
-		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
-		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
-		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
+		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000_tlc2_tool_liveness_ChooseTableauSymmetryTestA_TTraceTest>");
+		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000_tlc2_tool_liveness_ChooseTableauSymmetryTestA_TTraceTest>");
+		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000_tlc2_tool_liveness_ChooseTableauSymmetryTestA_TTraceTest>");
+		expectedActions.add("<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000_tlc2_tool_liveness_ChooseTableauSymmetryTestA_TTraceTest>");
 		
 		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace, expectedActions);
 		
-		assertBackToState(3, "<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000>");
+		assertBackToState(3, "<_next line 27, col 5 to line 32, col 33 of module ChooseTableauSymmetryMCa_TTrace_2000000000_tlc2_tool_liveness_ChooseTableauSymmetryTestA_TTraceTest>");
 
 	assertZeroUncovered();
 	}

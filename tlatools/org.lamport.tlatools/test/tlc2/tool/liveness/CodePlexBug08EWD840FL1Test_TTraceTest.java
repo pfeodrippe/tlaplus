@@ -48,7 +48,7 @@ public class CodePlexBug08EWD840FL1Test_TTraceTest extends ModelCheckerTestCase 
 	}
 
 	public CodePlexBug08EWD840FL1Test_TTraceTest() {
-		super("EWD840MC1" + teSpecSuffix, "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
+		super("EWD840MC1", "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
 	}
 	
 	@Test

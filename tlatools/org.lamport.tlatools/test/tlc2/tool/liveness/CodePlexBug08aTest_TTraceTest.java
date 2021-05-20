@@ -48,7 +48,7 @@ public class CodePlexBug08aTest_TTraceTest extends ModelCheckerTestCase {
 	}
 
 	public CodePlexBug08aTest_TTraceTest() {
-		super("MCa" + teSpecSuffix, "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
+		super("MCa", "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
 	}
 	
 	@Test

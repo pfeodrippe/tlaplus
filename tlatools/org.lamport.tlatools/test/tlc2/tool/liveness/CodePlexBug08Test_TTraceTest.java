@@ -49,7 +49,7 @@ public class CodePlexBug08Test_TTraceTest extends ModelCheckerTestCase {
 	}
 
 	public CodePlexBug08Test_TTraceTest() {
-		super(TLAConstants.Files.MODEL_CHECK_FILE_BASENAME + teSpecSuffix, "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
+		super(TLAConstants.Files.MODEL_CHECK_FILE_BASENAME, "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
 	}
 	
 	@Test

@@ -167,7 +167,7 @@ public class TraceExplorationSpec {
 			String filename = Paths.get(tlaFilePath).getFileName().toString();
 			// see tlc2.TraceExplorationSpec.deriveTESpecModuleName(String)
 			return filename
-					.matches("^.*_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + "_\\d{10}(.tla)?$");
+					.matches("^.*_" + TLAConstants.TraceExplore.TRACE_EXPRESSION_MODULE_NAME + ".*(.tla)?$");
 		} catch (InvalidPathException e) { return false; }
 	}
 	

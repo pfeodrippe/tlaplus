@@ -55,7 +55,7 @@ public class LoopTestForcedPartial_TTraceTest extends ModelCheckerTestCase {
 	}
 	
 	public LoopTestForcedPartial_TTraceTest() {
-		super("SystemLoop" + teSpecSuffix, "Loop", ExitStatus.VIOLATION_LIVENESS);
+		super("SystemLoop", "Loop", ExitStatus.VIOLATION_LIVENESS);
 	}
 
 	@Test
