@@ -40,11 +40,19 @@ import tlc2.output.EC;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
 @RunWith(BlockJUnit4ClassRunner.class)
-public class AliasSafetySimuTest extends ModelCheckerTestCase {
+public class AliasSafetySimuTest_TTraceTest extends ModelCheckerTestCase {
 
-	public AliasSafetySimuTest() {
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public AliasSafetySimuTest_TTraceTest() {
 		super("Alias", new String[] { "-config", "Alias.tla", "-simulate", "num=1" }, EC.ExitStatus.VIOLATION_SAFETY);
 	}
+
+	// ALIAS modifies the output of the original spec, do we need to worry
+	// about these cases and also create a ALIAS in our TE spec?
 
 	@Test
 	public void testSpec() {

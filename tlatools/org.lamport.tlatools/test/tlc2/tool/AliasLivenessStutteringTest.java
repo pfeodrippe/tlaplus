@@ -45,9 +45,6 @@ public class AliasLivenessStutteringTest extends ModelCheckerTestCase {
 		super("Alias", new String[] { "-config", "AliasStuttering.cfg" }, EC.ExitStatus.VIOLATION_LIVENESS);
 	}
 
-	// ALIAS modifies the output of the original spec, do we need to worry
-	// about these cases and also create a ALIAS in our TE spec?
-
 	@Test
 	public void testSpec() {
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));

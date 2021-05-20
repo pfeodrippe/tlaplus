@@ -39,11 +39,19 @@ import tlc2.output.EC;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
 @RunWith(BlockJUnit4ClassRunner.class)
-public class AliasLivenessLassoTest extends ModelCheckerTestCase {
+public class AliasLivenessLassoTest_TTraceTest extends ModelCheckerTestCase {
 
-	public AliasLivenessLassoTest() {
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public AliasLivenessLassoTest_TTraceTest() {
 		super("Alias", new String[] { "-config", "AliasLasso.cfg" }, EC.ExitStatus.VIOLATION_LIVENESS);
 	}
+
+	// ALIAS modifies the output of the original spec, do we need to worry
+	// about these cases and also create a ALIAS in our TE spec?
 
 	@Test
 	public void testSpec() {
