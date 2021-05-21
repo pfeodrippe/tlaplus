@@ -30,7 +30,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -38,39 +37,49 @@ import org.junit.Test;
 import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
 import tlc2.tool.liveness.ModelCheckerTestCase;
+import util.TLAConstants;
 
-public class IncompleteNextTest extends ModelCheckerTestCase {
+public class PrintTraceRaceTest_TTraceTest extends ModelCheckerTestCase {
 
-	public IncompleteNextTest() {
-		super("IncompleteNext", ExitStatus.FAILURE_SPEC_EVAL);
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public PrintTraceRaceTest_TTraceTest() {
+		super(TLAConstants.Files.MODEL_CHECK_FILE_BASENAME, "PrintTraceRace", ExitStatus.VIOLATION_SAFETY);
 	}
 
 	@Test
 	public void testSpec() {
-		// ModelChecker has finished and generated the expected amount of states
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2", "2", "0"));
 		assertFalse(recorder.recorded(EC.GENERAL));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2", "1", "0"));
-		assertFalse(recorder.recorded(EC.GENERAL));
-		
-		// Assert the error trace
-		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
-		final List<String> expectedTrace = new ArrayList<String>(2);
-		final List<String> expectedActions = new ArrayList<String>(2);
-		expectedTrace.add("/\\ x = 0\n/\\ y = 0");
-		expectedActions.add(isExtendedTLCState()
-				? "<Initial predicate line 6, col 19 to line 6, col 21 of module IncompleteNext>"
-				: TLCStateInfo.INITIAL_PREDICATE);
-		expectedTrace.add("/\\ x = 1\n/\\ y = null");
-		expectedActions.add("<Action line 6, col 30 to line 6, col 35 of module IncompleteNext>");
-		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace, expectedActions);
-		
-		// Assert TLC indicates unassigned variable
-		assertTrue(recorder.recorded(EC.TLC_STATE_NOT_COMPLETELY_SPECIFIED_NEXT));
-		final List<Object> records = recorder.getRecords(EC.TLC_STATE_NOT_COMPLETELY_SPECIFIED_NEXT);
-		assertEquals(" is", ((String[]) records.get(0))[0]);
-		assertEquals("y", ((String[]) records.get(0))[1]);
 
-		assertZeroUncovered();
+		assertTrue(recorder.recorded(EC.TLC_BEHAVIOR_UP_TO_THIS_POINT));
+		
+		final List<Object> records = recorder.getRecords(EC.TLC_STATE_PRINT2);
+
+		int i = 0; // State's position in records
+		Object[] objs = (Object[]) records.get(i++);
+		TLCStateInfo stateInfo = (TLCStateInfo) objs[0];
+		assertEquals("S = [q |-> <<>>, i |-> 1]", 
+				   stateInfo.toString().trim()); // trimmed to remove any newlines or whitespace
+		assertEquals(i, objs[1]);
+		
+		objs = (Object[]) records.get(i++);
+		stateInfo = (TLCStateInfo) objs[0];
+		assertEquals("S = [q |-> <<1>>, i |-> 2]", 
+				   stateInfo.toString().trim()); // trimmed to remove any newlines or whitespace
+		assertEquals(i, objs[1]);
+		
+		assertEquals(2, objs.length);
+
+		assertUncovered("line 15, col 12 to line 15, col 28 of module PrintTraceRace: 0");
+	}
+	
+	protected int getNumberOfThreads() {
+		// This bug only shows up with multiple threads.
+		return 4;
 	}
 }

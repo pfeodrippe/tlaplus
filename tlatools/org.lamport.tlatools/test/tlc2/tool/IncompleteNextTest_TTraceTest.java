@@ -33,18 +33,25 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public class IncompleteNextTest extends ModelCheckerTestCase {
+public class IncompleteNextTest_TTraceTest extends ModelCheckerTestCase {
 
-	public IncompleteNextTest() {
-		super("IncompleteNext", ExitStatus.FAILURE_SPEC_EVAL);
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
 
+	public IncompleteNextTest_TTraceTest() {
+		super("IncompleteNext", ExitStatus.FAILURE_SPEC_EVAL);
+	}
+		
+    @Ignore("https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313")
 	@Test
 	public void testSpec() {
 		// ModelChecker has finished and generated the expected amount of states

@@ -45,8 +45,6 @@ public class IncompleteNextMultipleActionsTest extends ModelCheckerTestCase {
 		super("IncompleteNextMultipleActions", ExitStatus.FAILURE_SPEC_EVAL);
 	}
 
-	// See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
-
 	@Test
 	public void testSpec() {
 		// ModelChecker has finished and generated the expected amount of states

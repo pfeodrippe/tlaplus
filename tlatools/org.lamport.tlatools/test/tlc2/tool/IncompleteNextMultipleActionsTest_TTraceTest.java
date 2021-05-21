@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Microsoft Research. All rights reserved. 
+ * Copyright (c) 2018 Microsoft Research. All rights reserved. 
  *
  * The MIT License (MIT)
  * 
@@ -33,18 +33,25 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public class IncompleteNextTest extends ModelCheckerTestCase {
+public class IncompleteNextMultipleActionsTest_TTraceTest extends ModelCheckerTestCase {
 
-	public IncompleteNextTest() {
-		super("IncompleteNext", ExitStatus.FAILURE_SPEC_EVAL);
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
 
+	public IncompleteNextMultipleActionsTest_TTraceTest() {
+		super("IncompleteNextMultipleActions", ExitStatus.FAILURE_SPEC_EVAL);
+	}
+
+    @Ignore("https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313")
 	@Test
 	public void testSpec() {
 		// ModelChecker has finished and generated the expected amount of states
@@ -55,22 +62,20 @@ public class IncompleteNextTest extends ModelCheckerTestCase {
 		
 		// Assert the error trace
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
-		final List<String> expectedTrace = new ArrayList<String>(2);
-		final List<String> expectedActions = new ArrayList<String>(2);
-		expectedTrace.add("/\\ x = 0\n/\\ y = 0");
-		expectedActions.add(isExtendedTLCState()
-				? "<Initial predicate line 6, col 19 to line 6, col 21 of module IncompleteNext>"
-				: TLCStateInfo.INITIAL_PREDICATE);
-		expectedTrace.add("/\\ x = 1\n/\\ y = null");
-		expectedActions.add("<Action line 6, col 30 to line 6, col 35 of module IncompleteNext>");
-		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace, expectedActions);
+		final List<String> expectedTrace = new ArrayList<String>(4);
+		expectedTrace.add("/\\ x = 0\n/\\ y = 0\n/\\ z = 0");
+		expectedTrace.add("/\\ x = 1\n/\\ y = null\n/\\ z = null");
+		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
 		
 		// Assert TLC indicates unassigned variable
 		assertTrue(recorder.recorded(EC.TLC_STATE_NOT_COMPLETELY_SPECIFIED_NEXT));
 		final List<Object> records = recorder.getRecords(EC.TLC_STATE_NOT_COMPLETELY_SPECIFIED_NEXT);
-		assertEquals(" is", ((String[]) records.get(0))[0]);
-		assertEquals("y", ((String[]) records.get(0))[1]);
+		assertEquals("A1", ((String[]) records.get(0))[0]);
+		assertEquals("s are", ((String[]) records.get(0))[1]);
+		assertEquals("y, z", ((String[]) records.get(0))[2]);
 
-		assertZeroUncovered();
+		assertUncovered("line 8, col 16 to line 8, col 21 of module IncompleteNextMultipleActions: 0\n"
+				+ "line 8, col 26 to line 8, col 31 of module IncompleteNextMultipleActions: 0\n"
+				+ "line 8, col 7 to line 8, col 11 of module IncompleteNextMultipleActions: 0\n");
 	}
 }
