@@ -40,31 +40,27 @@ import tlc2.output.EC;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
 @RunWith(BlockJUnit4ClassRunner.class)
-public class AliasLivenessLassoTest_TTraceTest extends ModelCheckerTestCase {
+public class AliasSafetyTest_TTraceTest extends ModelCheckerTestCase {
 
     @Override
     protected boolean isTESpec() {
 		return true;
 	}
 
-	public AliasLivenessLassoTest_TTraceTest() {
-		super("Alias", new String[] {}, EC.ExitStatus.VIOLATION_LIVENESS);
+	public AliasSafetyTest_TTraceTest() {
+		super("Alias", new String[] {}, EC.ExitStatus.VIOLATION_SAFETY);
 	}
 
 	// ALIAS modifies the output of the original spec, do we need to worry
 	// about these cases and also create a ALIAS in our TE spec?
-    @Ignore("TESpec Bug")
+	@Ignore("TESpec Bug")
 	@Test
 	public void testSpec() {
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "5", "4", "0"));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "4", "4", "0"));
 		assertTrue(recorder.recordedWithStringValue(EC.TLC_SEARCH_DEPTH, "4"));
 
 		assertFalse(recorder.recorded(EC.GENERAL));
-
-		// Assert it has found the temporal violation and also a counter example
-		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
-		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
 
 		// Assert the error trace
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
@@ -73,9 +69,7 @@ public class AliasLivenessLassoTest_TTraceTest extends ModelCheckerTestCase {
 		expectedTrace.add("/\\ y = FALSE\n/\\ x = 1\n/\\ a = 1\n/\\ b = FALSE\n/\\ anim = \"e1: 1 e2: FALSE\"\n/\\ te = TRUE");
 		expectedTrace.add("/\\ y = TRUE\n/\\ x = 2\n/\\ a = 1\n/\\ b = FALSE\n/\\ anim = \"e1: 2 e2: TRUE\"\n/\\ te = TRUE");
 		expectedTrace.add("/\\ y = FALSE\n/\\ x = 3\n/\\ a = 1\n/\\ b = FALSE\n/\\ anim = \"e1: 3 e2: FALSE\"\n/\\ te = TRUE");
-		expectedTrace.add("/\\ y = TRUE\n/\\ x = 4\n/\\ a = -3\n/\\ b = FALSE\n/\\ anim = \"e1: 4 e2: TRUE\"\n/\\ te = TRUE");
+		expectedTrace.add("/\\ y = TRUE\n/\\ x = 4\n/\\ a = 0\n/\\ b = TRUE\n/\\ anim = \"e1: 4 e2: TRUE\"\n/\\ te = TRUE");
 		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
-		
-		assertBackToState(1, "<B line 20, col 1 to line 22, col 9 of module Alias>");
 	}
 }
