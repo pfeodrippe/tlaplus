@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Microsoft Research. All rights reserved. 
+ * Copyright (c) 2020 Microsoft Research. All rights reserved. 
  *
  * The MIT License (MIT)
  * 
@@ -25,44 +25,43 @@
  ******************************************************************************/
 package tlc2.tool;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
 import tlc2.output.EC;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public class Github597Test extends ModelCheckerTestCase {
+public class Github461Test_TTraceTest extends ModelCheckerTestCase {
 
-	public Github597Test() {
-		super("dekker", new String[] { "-config", "dekker.tla" }, EC.ExitStatus.VIOLATION_LIVENESS);
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
 
-	protected boolean noRandomFPandSeed() {
-		return false;
-	}
-	
-	protected boolean doCoverage() {
-		return false;
-	}
-	
-	protected boolean doDump() {
-		return false;
+	public Github461Test_TTraceTest() {
+		super("Github461", EC.ExitStatus.VIOLATION_SAFETY);
 	}
 
 	@Test
 	public void testSpec() throws FileNotFoundException, IOException {
-		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "4356", "1500", "0"));
-		assertFalse(recorder.recorded(EC.GENERAL));
-
-		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
-		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
+		// Assert an error trace.
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
-		assertBackToState();
+		
+		// Assert the correct trace.
+		final List<String> expectedTrace = new ArrayList<String>(4);
+		expectedTrace.add("x = 0");
+		expectedTrace.add("x = 1");
+		expectedTrace.add("x = 2");
+		expectedTrace.add("x = 3");
+		expectedTrace.add("x = 4");
+		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
+
+		assertZeroUncovered();
 	}
 }

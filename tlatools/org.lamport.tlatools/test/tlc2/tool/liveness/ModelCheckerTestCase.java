@@ -194,7 +194,9 @@ public abstract class ModelCheckerTestCase extends CommonTestCase {
 	public void setUp() {
 		if (!isTESpec()) {
 			// Remove any generated file before running a original spec.
-			removeGeneratedFiles(originalTESpecPath() + teSpecSuffix + "_" + mungedClassName() + "_TTraceTest", clonedTESpecPath() + teSpecSuffix);
+			removeGeneratedFiles(
+				originalTESpecPath() + teSpecSuffix + "_" + mungedClassName() + "_TTraceTest", 
+				clonedTESpecPath() + teSpecSuffix + "_" + mungedClassName() + "_TTraceTest");
 		} else {
 			checkTESpecAssumption();
 			
