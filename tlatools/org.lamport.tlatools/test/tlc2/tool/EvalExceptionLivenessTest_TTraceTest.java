@@ -30,21 +30,30 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tlc2.output.EC;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public class EvalExceptionLivenessTest extends ModelCheckerTestCase {
-    public EvalExceptionLivenessTest() {
-        super("DistBakery3aAuxMC", new String[] { "-config", "DistBakery3aAuxMC.tla" }, EC.ExitStatus.ERROR);
-    }
+public class EvalExceptionLivenessTest_TTraceTest extends ModelCheckerTestCase {
 
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+    public EvalExceptionLivenessTest_TTraceTest() {
+        super("DistBakery3aAuxMC", EC.ExitStatus.ERROR);
+    }	
+    
     @Override
 	protected boolean doCoverage() {
 		return false;
 	}
 
+    // See https://github.com/tlaplus/tlaplus/pull/588#issuecomment-821745313.
+    @Ignore("TESpec Bug - Monolith")
 	@Test
     public void testSpec() {
         assertTrue(recorder.recorded(EC.TLC_FINISHED));
