@@ -25,25 +25,25 @@
  ******************************************************************************/
 package tlc2.tool.checkpoint;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import tlc2.TLC;
 import tlc2.output.EC;
+import tlc2.output.EC.ExitStatus;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public class CheckpointWhenTimeBoundTest extends ModelCheckerTestCase {
+public class CheckpointOnViolationTest_TTraceTest extends ModelCheckerTestCase {
 
-	public CheckpointWhenTimeBoundTest() {
-		super("InfiniteStateSpace", "checkpoint");
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
 
-	@Override
-	public void setUp() {
-		System.setProperty(TLC.class.getName() + ".stopAfter", "5"); // five seconds
-		super.setUp();
+	public CheckpointOnViolationTest_TTraceTest() {
+		super("DieHard", ExitStatus.VIOLATION_SAFETY);
 	}
 
 	@Test
@@ -51,15 +51,11 @@ public class CheckpointWhenTimeBoundTest extends ModelCheckerTestCase {
 		// ModelChecker has finished and generated the expected amount of states. 
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
 		assertFalse(recorder.recorded(EC.GENERAL));
-
-		assertNoTESpec();
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "7", "7", "0"));
 		
-		assertFalse(recorder.recorded(EC.TLC_STATE_PRINT1));
-		assertFalse(recorder.recorded(EC.TLC_STATE_PRINT2));
-		
-		// Check that a checkpoint has been taken.
-		assertTrue(recorder.recorded(EC.TLC_CHECKPOINT_START));
-		assertTrue(recorder.recorded(EC.TLC_CHECKPOINT_END));
+		// Check the violation
+		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
+		assertEquals(7, recorder.getRecords(EC.TLC_STATE_PRINT2).size());
 		
 		assertZeroUncovered();
 	}

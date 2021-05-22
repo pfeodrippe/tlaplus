@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Microsoft Research. All rights reserved. 
+ * Copyright (c) 2018 Microsoft Research. All rights reserved. 
  *
  * The MIT License (MIT)
  * 
@@ -23,53 +23,46 @@
  * Contributors:
  *   Markus Alexander Kuppe - initial API and implementation
  ******************************************************************************/
-package tlc2.tool.checkpoint;
+package tlc2.tool.liveness;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 
-import tlc2.TLC;
 import tlc2.output.EC;
-import tlc2.tool.liveness.ModelCheckerTestCase;
+import tlc2.output.EC.ExitStatus;
 
-public class CheckpointWhenTimeBoundTest extends ModelCheckerTestCase {
+public abstract class BidirectionalTransitions1B_TTrace extends ModelCheckerTestCase {
 
-	public CheckpointWhenTimeBoundTest() {
-		super("InfiniteStateSpace", "checkpoint");
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
 
-	@Override
-	public void setUp() {
-		System.setProperty(TLC.class.getName() + ".stopAfter", "5"); // five seconds
-		super.setUp();
+	public BidirectionalTransitions1B_TTrace() {
+		super("BidirectionalTransitions", ExitStatus.VIOLATION_LIVENESS);
 	}
-
+	
 	@Test
 	public void testSpec() {
-		// ModelChecker has finished and generated the expected amount of states. 
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
 		assertFalse(recorder.recorded(EC.GENERAL));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "4", "3", "0"));
 
-		assertNoTESpec();
-		
-		assertFalse(recorder.recorded(EC.TLC_STATE_PRINT1));
-		assertFalse(recorder.recorded(EC.TLC_STATE_PRINT2));
-		
-		// Check that a checkpoint has been taken.
-		assertTrue(recorder.recorded(EC.TLC_CHECKPOINT_START));
-		assertTrue(recorder.recorded(EC.TLC_CHECKPOINT_END));
-		
-		assertZeroUncovered();
-	}
+		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
+		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
 
-	@Override
-	protected int doCheckpoint() {
-		// Request checkpoints but make it highly unlike for the test to ever create a
-		// checkpoint because the checkpoint interval was exceeded. We want to test
-		// TLC's functionality to take a checkpoint when time-bound model-checking is on
-		// and/or a violation has been found.
-		return (Integer.MAX_VALUE / 60000);
+		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
+		final List<String> expectedTrace = new ArrayList<String>(3);
+		expectedTrace.add("x = 0");
+		expectedTrace.add("x = 2");
+		expectedTrace.add("x = 1");
+		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
+
+		assertBackToState(1);
 	}
 }
