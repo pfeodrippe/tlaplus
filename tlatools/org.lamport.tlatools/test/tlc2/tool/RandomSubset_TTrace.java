@@ -38,17 +38,17 @@ import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public abstract class RandomSubset_TTraceTest extends ModelCheckerTestCase {
-
-	private final int x;
-	private final int y;
+public abstract class RandomSubset_TTrace extends ModelCheckerTestCase {
 
     @Override
     protected boolean isTESpec() {
 		return true;
 	}
 
-	public RandomSubset_TTraceTest(final long seed, final int x, final int y) {
+	private final int x;
+	private final int y;
+
+	public RandomSubset_TTrace(final int x, final int y) {		
 		super("RandomSubset", ExitStatus.VIOLATION_SAFETY);
 		this.x = x;
 		this.y = y;
@@ -59,8 +59,8 @@ public abstract class RandomSubset_TTraceTest extends ModelCheckerTestCase {
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
 		assertFalse(recorder.recorded(EC.GENERAL));
 		
-		assertTrue(recorder.recordedWithStringValue(EC.TLC_INIT_GENERATED1, "2002"));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2003", "2003", "2001"));
+		assertTrue(recorder.recordedWithStringValue(EC.TLC_INIT_GENERATED1, "1"));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2", "2", "0"));
 		assertEquals(2, recorder.getRecordAsInt(EC.TLC_SEARCH_DEPTH));
 
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
