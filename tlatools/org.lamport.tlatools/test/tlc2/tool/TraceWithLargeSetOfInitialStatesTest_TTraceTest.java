@@ -37,12 +37,16 @@ import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public class ViewMapTest extends ModelCheckerTestCase {
+public class TraceWithLargeSetOfInitialStatesTest_TTraceTest extends ModelCheckerTestCase {
 
-	public ViewMapTest() {
-		super("ViewMap", new String[] { "-view" }, ExitStatus.VIOLATION_SAFETY);
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
 
+	public TraceWithLargeSetOfInitialStatesTest_TTraceTest() {
+		super("TraceWithLargeSetOfInitialStatesTest", new String[] { "-maxSetSize", "10" }, ExitStatus.VIOLATION_SAFETY);
+	}
 
 	@Test
 	public void testSpec() {
@@ -52,29 +56,16 @@ public class ViewMapTest extends ModelCheckerTestCase {
 
 		assertTrue(recorder.recorded(EC.TLC_BEHAVIOR_UP_TO_THIS_POINT));
 		
-		final List<String> expectedTrace = new ArrayList<String>(8);
-		expectedTrace.add("/\\ buffer = <<>>\n/\\ waitset = {}");
-		expectedTrace.add("/\\ buffer = <<>>\n/\\ waitset = {c1}");
-		expectedTrace.add("/\\ buffer = <<>>\n/\\ waitset = {c1, c2}");
-		expectedTrace.add("/\\ buffer = <<\"d\">>\n/\\ waitset = {c2}");
-
-		expectedTrace.add("/\\ buffer = <<\"d\">>\n/\\ waitset = {c2, p1}");
-		expectedTrace.add("/\\ buffer = << >>\n/\\ waitset = {p1}");
-		expectedTrace.add("/\\ buffer = << >>\n/\\ waitset = {c1, p1}");
-		expectedTrace.add("/\\ buffer = << >>\n/\\ waitset = {c1, c2, p1}");
-		final List<String> expectedActions = new ArrayList<>();
-		expectedActions.add(isExtendedTLCState()
-				? "<Init line 53, col 9 to line 56, col 63 of module ViewMap>"
+		final List<String> expectedTrace = new ArrayList<String>(2);
+		expectedTrace.add("/\\ x = 1\n/\\ y = FALSE");
+		expectedTrace.add("/\\ x = 1\n/\\ y = TRUE");
+		final List<String> expectedActions = new ArrayList<>(2);
+        expectedActions.add(isExtendedTLCState()
+				? "<_init line 23, col 5 to line 24, col 24 of module TraceWithLargeSetOfInitialStatesTest_TTrace_2000000000_tlc2_tool_TraceWithLargeSetOfInitialStatesTest_TTraceTest>"
 				: TLCStateInfo.INITIAL_PREDICATE);
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
-		expectedActions.add("<lbp line 58, col 14 to line 69, col 60 of module ViewMap>");
-		expectedActions.add("<lbp line 58, col 14 to line 69, col 60 of module ViewMap>");
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
-		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace, expectedActions);
+		expectedActions.add("<_next line 28, col 5 to line 33, col 29 of module TraceWithLargeSetOfInitialStatesTest_TTrace_2000000000_tlc2_tool_TraceWithLargeSetOfInitialStatesTest_TTraceTest>");		
+		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace, expectedActions );
 
-		assertUncovered("line 91, col 60 to line 91, col 73 of module ViewMap: 0");
+	assertZeroUncovered();
 	}
 }

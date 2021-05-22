@@ -29,22 +29,31 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tlc2.output.EC;
 import tlc2.output.EC.ExitStatus;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public class ViewMapTest extends ModelCheckerTestCase {
+public class ViewMapTest_TTraceTest extends ModelCheckerTestCase {
 
-	public ViewMapTest() {
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public ViewMapTest_TTraceTest() {
 		super("ViewMap", new String[] { "-view" }, ExitStatus.VIOLATION_SAFETY);
 	}
 
-
-	@Test
+	// VIEW modifies the output of the original spec (is it a poor's man ALIAS?), do we need to worry
+	// about these cases and also create a VIEW in our TE spec?
+    @Ignore("TESpec bug - VIEW")
+	@Test    
 	public void testSpec() {
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
 		assertFalse(recorder.recorded(EC.GENERAL));
@@ -64,15 +73,10 @@ public class ViewMapTest extends ModelCheckerTestCase {
 		expectedTrace.add("/\\ buffer = << >>\n/\\ waitset = {c1, c2, p1}");
 		final List<String> expectedActions = new ArrayList<>();
 		expectedActions.add(isExtendedTLCState()
-				? "<Init line 53, col 9 to line 56, col 63 of module ViewMap>"
+				? "<_init line 25, col 5 to line 27, col 26 of module ViewMap_TTrace_2000000000_tlc2_tool_ViewMapTest_TTraceTest>"
 				: TLCStateInfo.INITIAL_PREDICATE);
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
-		expectedActions.add("<lbp line 58, col 14 to line 69, col 60 of module ViewMap>");
-		expectedActions.add("<lbp line 58, col 14 to line 69, col 60 of module ViewMap>");
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
-		expectedActions.add("<lbc line 73, col 14 to line 84, col 60 of module ViewMap>");
+		expectedActions.addAll(
+			Collections.nCopies(7, "<_next line 31, col 5 to line 38, col 31 of module ViewMap_TTrace_2000000000_tlc2_tool_ViewMapTest_TTraceTest>"));
 		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace, expectedActions);
 
 		assertUncovered("line 91, col 60 to line 91, col 73 of module ViewMap: 0");
