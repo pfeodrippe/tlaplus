@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Microsoft Research. All rights reserved. 
+ * Copyright (c) 2018 Microsoft Research. All rights reserved. 
  *
  * The MIT License (MIT)
  * 
@@ -25,35 +25,63 @@
  ******************************************************************************/
 package tlc2.tool;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
 import tlc2.output.EC;
+import tlc2.output.EC.ExitStatus;
 import tlc2.tool.liveness.ModelCheckerTestCase;
+import tlc2.value.IValue;
+import tlc2.value.impl.IntValue;
+import util.UniqueString;
 
-public class SubsetEqTest extends ModelCheckerTestCase {
+public class RandomSubsetNextT4Test_TTraceTest extends ModelCheckerTestCase {
 
-	public SubsetEqTest() {
-		super("SubsetEq");
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public RandomSubsetNextT4Test_TTraceTest() {
+		super("RandomSubsetNext", ExitStatus.VIOLATION_SAFETY);
 	}
 
 	@Test
 	public void testSpec() {
-		// This is a performance test. With the original implementation - where
-		// TLC does not reduce (SUBSET A \subseteq SUBSET B) - the test takes
-		// forever to generate the successor state. Reduced to (A \subseteq B),
-		// the test completes within seconds.
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertFalse(recorder.recorded(EC.GENERAL));
+		assertFalse(recorder.recorded(EC.TLC_BUG));
 
-		assertNoTESpec();
+		assertTrue(recorder.recorded(EC.TLC_BEHAVIOR_UP_TO_THIS_POINT));
 		
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2", "1", "0"));
-		// No error trace!
-		assertFalse(recorder.recorded(EC.TLC_STATE_PRINT2));
+		final List<Object> records = recorder.getRecords(EC.TLC_STATE_PRINT2);
+		assertEquals(11, records.size());
+		
+		int cnt = 0;
+		for (Object r : records) {
+			final Object[] objs = (Object[]) r;
+			final TLCStateInfo info = (TLCStateInfo) objs[0];
+			final Map<UniqueString, IValue> vals = info.state.getVals();
 
-	assertZeroUncovered();
+			final IValue y = vals.get(UniqueString.uniqueStringOf("y"));
+			assertEquals(cnt++, ((IntValue) y).val);
+			
+			final IValue x = info.state.getVals().get(UniqueString.uniqueStringOf("x"));
+			assertTrue(1 <= ((IntValue) x).val && ((IntValue) x).val <= 1000);
+			
+			final int statenum = (int) objs[1];
+			assertEquals(cnt, statenum);
+		}
+	}
+	
+	protected int getNumberOfThreads() {
+		// With 4 threads the counter-examples is not predictable anymore because it
+		// depends on thread scheduling.
+		return 4;
 	}
 }

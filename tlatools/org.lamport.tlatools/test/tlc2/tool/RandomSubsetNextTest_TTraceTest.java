@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Microsoft Research. All rights reserved. 
+ * Copyright (c) 2018 Microsoft Research. All rights reserved. 
  *
  * The MIT License (MIT)
  * 
@@ -28,32 +28,48 @@ package tlc2.tool;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 
 import tlc2.output.EC;
+import tlc2.output.EC.ExitStatus;
 import tlc2.tool.liveness.ModelCheckerTestCase;
 
-public class SubsetEqTest extends ModelCheckerTestCase {
+public class RandomSubsetNextTest_TTraceTest extends ModelCheckerTestCase {
 
-	public SubsetEqTest() {
-		super("SubsetEq");
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public RandomSubsetNextTest_TTraceTest() {
+		super("RandomSubsetNext", ExitStatus.VIOLATION_SAFETY);
 	}
 
 	@Test
 	public void testSpec() {
-		// This is a performance test. With the original implementation - where
-		// TLC does not reduce (SUBSET A \subseteq SUBSET B) - the test takes
-		// forever to generate the successor state. Reduced to (A \subseteq B),
-		// the test completes within seconds.
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertFalse(recorder.recorded(EC.GENERAL));
+		assertFalse(recorder.recorded(EC.TLC_BUG));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "11", "11", "0"));
 
-		assertNoTESpec();
+		assertTrue(recorder.recorded(EC.TLC_BEHAVIOR_UP_TO_THIS_POINT));
 		
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2", "1", "0"));
-		// No error trace!
-		assertFalse(recorder.recorded(EC.TLC_STATE_PRINT2));
-
-	assertZeroUncovered();
+		final List<String> expectedTrace = new ArrayList<String>(11);
+		expectedTrace.add("/\\ x = 23\n/\\ y = 0");
+		expectedTrace.add("/\\ x = 26\n/\\ y = 1");
+		expectedTrace.add("/\\ x = 18\n/\\ y = 2");
+		expectedTrace.add("/\\ x = 29\n/\\ y = 3");
+		expectedTrace.add("/\\ x = 189\n/\\ y = 4");
+		expectedTrace.add("/\\ x = 19\n/\\ y = 5");
+		expectedTrace.add("/\\ x = 92\n/\\ y = 6");
+		expectedTrace.add("/\\ x = 250\n/\\ y = 7");
+		expectedTrace.add("/\\ x = 41\n/\\ y = 8");
+		expectedTrace.add("/\\ x = 52\n/\\ y = 9");
+		expectedTrace.add("/\\ x = 78\n/\\ y = 10");
+		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
+		
+		assertZeroUncovered();
 	}
 }
