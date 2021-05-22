@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Microsoft Research. All rights reserved. 
+ * Copyright (c) 2015 Microsoft Research. All rights reserved. 
  *
  * The MIT License (MIT)
  * 
@@ -23,8 +23,10 @@
  * Contributors:
  *   Markus Alexander Kuppe - initial API and implementation
  ******************************************************************************/
+
 package tlc2.tool.liveness;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -33,35 +35,47 @@ import java.util.List;
 import org.junit.Test;
 
 import tlc2.output.EC;
+import tlc2.output.EC.ExitStatus;
 
-public class Github317Test extends ModelCheckerTestCase {
+public class ErrorTraceConstructionTest_TTraceTest extends ModelCheckerTestCase {
 
-	public Github317Test() {
-		super("Github317", new String[] { "-config", "Github317.tla"}, EC.ExitStatus.ERROR);
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
 
+	public ErrorTraceConstructionTest_TTraceTest() {
+		super("ErrorTraceConstructionMC", "symmetry", ExitStatus.VIOLATION_LIVENESS);
+	}
+	
 	@Test
 	public void testSpec() {
+		// ModelChecker has finished and generated the expected amount of states
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValue(EC.TLC_SEARCH_DEPTH, "2"));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2", "2", "1"));
-
-		assertNoTESpec();
-
-		final List<String> expectedTrace = new ArrayList<String>(1);
-		expectedTrace.add("/\\ a = 0\n" + "/\\ b = 0");
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "9", "8", "0"));
+		assertFalse(recorder.recorded(EC.GENERAL));
+		
+		// Assert it has found the temporal violation and also a counter example
+		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
+		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
+		
+		assertNodeAndPtrSizes(240, 128L);
+	
+		// Assert the error trace
+		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
+		final List<String> expectedTrace = new ArrayList<String>(4);
+		expectedTrace.add("/\\ x = 0\n/\\ y = 0");
+		expectedTrace.add("/\\ x = 0\n/\\ y = 1");
+		expectedTrace.add("/\\ x = 0\n/\\ y = 2");
+		expectedTrace.add("/\\ x = 0\n/\\ y = 3");
+		expectedTrace.add("/\\ x = 0\n/\\ y = 4");
+		expectedTrace.add("/\\ x = 1\n/\\ y = 5");
+		expectedTrace.add("/\\ x = 0\n/\\ y = 6");
+		expectedTrace.add("/\\ x = 0\n/\\ y = 7");
 		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
 		
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_NESTED_EXPRESSION,
-				"0. Line 18, column 20 to line 18, column 23 in Github317\n"
-				+ "1. Line 10, column 9 to line 11, column 23 in Github317\n"
-				+ "2. Line 10, column 12 to line 10, column 21 in Github317\n"
-				+ "3. Line 11, column 12 to line 11, column 23 in Github317\n"
-				+ "4. Line 18, column 15 to line 18, column 18 in Github317\n"
-				+ "5. Line 5, column 9 to line 5, column 15 in Github317\n"
-				+ "6. Line 5, column 13 to line 5, column 13 in Github317\n\n"));
+		assertBackToState(4, "<_next line 32, col 5 to line 39, col 29 of module ErrorTraceConstructionMC_TTrace_2000000000_tlc2_tool_liveness_ErrorTraceConstructionTest_TTraceTest>");
 
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATE_NOT_COMPLETELY_SPECIFIED_LIVE,
-				"b", "line 5, col 13 to line 5, col 13 of module Github317"));
+	assertZeroUncovered();
 	}
 }

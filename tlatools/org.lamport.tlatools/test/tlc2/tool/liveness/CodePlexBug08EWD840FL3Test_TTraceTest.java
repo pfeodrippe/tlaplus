@@ -29,15 +29,8 @@ package tlc2.tool.liveness;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.junit.Test;
 
@@ -47,76 +40,29 @@ import tlc2.output.EC.ExitStatus;
 /**
  * see http://tlaplus.codeplex.com/workitem/8
  */
-public class CodePlexBug08EWD840FL2FromCheckpointTest extends ModelCheckerTestCase {
+public class CodePlexBug08EWD840FL3Test_TTraceTest extends ModelCheckerTestCase {
 
-	public CodePlexBug08EWD840FL2FromCheckpointTest() {
-		super("EWD840MC2", "CodePlexBug08", new String[] {"-gzip", "-recover", BASE_DIR + TEST_MODEL + "CodePlexBug08" + File.separator + "checkpoint"}, ExitStatus.VIOLATION_LIVENESS);
+    @Override
+    protected boolean isTESpec() {
+		return true;
+	}
+
+	public CodePlexBug08EWD840FL3Test_TTraceTest() {
+		super("EWD840MC3", "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
 	}
 	
-	@Override
-	public void setUp() {
-		try {
-			/* Recreate checkpoint.zip whenever file format changes:
-			 * 
-			 * 1) Run CodePlexBug08EWD840FL2Test with "-gzip"
-			 * 2) Connect to running test via JMX and request TLC checkpoint to be taken
-			 * 3) Terminate CodePlexBug08EWD840FL2Test once checkpoint successfully taken
-			 * 4) Locate the directory with the checkpoint data
-			 * 5) Replace the content of checkpoint.zip with the content of 4)
-			 * 6) Update the number below on states found...
-			 */
-			String prefix = BASE_DIR + TEST_MODEL + "CodePlexBug08" + File.separator;
-			ZipFile zipFile = new ZipFile(prefix + "checkpoint.zip");
-			Enumeration<?> enu = zipFile.entries();
-			while (enu.hasMoreElements()) {
-				ZipEntry zipEntry = (ZipEntry) enu.nextElement();
-
-				File file = new File(prefix + zipEntry.getName());
-				if (zipEntry.getName().endsWith("/")) {
-					file.mkdirs();
-					continue;
-				}
-
-				File parent = file.getParentFile();
-				if (parent != null) {
-					parent.mkdirs();
-				}
-
-				InputStream is = zipFile.getInputStream(zipEntry);
-				FileOutputStream fos = new FileOutputStream(file);
-				byte[] bytes = new byte[1024];
-				int length;
-				while ((length = is.read(bytes)) >= 0) {
-					fos.write(bytes, 0, length);
-				}
-				is.close();
-				fos.close();
-
-			}
-			zipFile.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		super.setUp();
-	}
-
 	@Test
 	public void testSpec() {
-		assertTrue(recorder.recorded(EC.TLC_CHECKPOINT_RECOVER_START));
-		// Recovery completed. 1032 states examined. 996 states on queue.
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_CHECKPOINT_RECOVER_END, "1510", "39"));
 		// ModelChecker has finished and generated the expected amount of states
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "2334", "1566","0"));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "9", "8", "0"));
 		assertFalse(recorder.recorded(EC.GENERAL));
-
-		assertNoTESpec();
-	
+		
 		// Assert it has found the temporal violation and also a counter example
 		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
 		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
 		
-		assertNodeAndPtrSizes(54038132L, 831296L);
+		assertNodeAndPtrSizes(240, 128);
 		
 		// Assert the error trace
 		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
@@ -134,21 +80,13 @@ public class CodePlexBug08EWD840FL2FromCheckpointTest extends ModelCheckerTestCa
 		                + "/\\ tcolor = \"white\"\n"
 		                + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
 		expectedTrace.add("/\\ tpos = 3\n"
-		                + "/\\ active = (0 :> TRUE @@ 1 :> FALSE @@ 2 :> TRUE @@ 3 :> TRUE)\n"
-		                + "/\\ tcolor = \"white\"\n"
-		                + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
-		expectedTrace.add("/\\ tpos = 3\n"
-		                + "/\\ active = (0 :> TRUE @@ 1 :> FALSE @@ 2 :> TRUE @@ 3 :> FALSE)\n"
-		                + "/\\ tcolor = \"white\"\n"
-		                + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
-		expectedTrace.add("/\\ tpos = 3\n"
 		                + "/\\ active = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE @@ 3 :> FALSE)\n"
 		                + "/\\ tcolor = \"white\"\n"
 		                + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
 		expectedTrace.add("/\\ tpos = 2\n"
 		                + "/\\ active = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE @@ 3 :> FALSE)\n"
 		                + "/\\ tcolor = \"white\"\n"
-		                + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");	
+		                + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
 		expectedTrace.add("/\\ tpos = 2\n"
 		                + "/\\ active = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE @@ 3 :> TRUE)\n"
 		                + "/\\ tcolor = \"white\"\n"
@@ -163,15 +101,9 @@ public class CodePlexBug08EWD840FL2FromCheckpointTest extends ModelCheckerTestCa
 		                + "/\\ color = (0 :> \"white\" @@ 1 :> \"white\" @@ 2 :> \"white\" @@ 3 :> \"white\")");
 		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace);
 		
-		// last state points back to state 1
+		// last state loops back to state 1
 		assertBackToState(1);
-	}
 
-
-	@Override
-	protected int getNumberOfThreads() {
-		return 3;
+	assertZeroUncovered();
 	}
-	
-	
 }
