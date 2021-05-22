@@ -24,7 +24,7 @@
  *   Markus Alexander Kuppe - initial API and implementation
  ******************************************************************************/
 
-package tlc2.tool.liveness;
+package tlc2.tool.liveness.simulation;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -32,31 +32,41 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import tlc2.output.EC;
+import tlc2.output.EC.ExitStatus;
+import tlc2.tool.liveness.ModelCheckerTestCase;
+import util.TLAConstants;
 
-public class NoSymmetryTableauModelCheckerTest extends ModelCheckerTestCase {
+public class StutteringTest_TTraceTest extends ModelCheckerTestCase {
 
-	public NoSymmetryTableauModelCheckerTest() {
-		super("NoSymmetryLivenessTableauMC", "symmetry");
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
-	
+
+	public StutteringTest_TTraceTest() {
+		super(TLAConstants.Files.MODEL_CHECK_FILE_BASENAME, "CodePlexBug08", ExitStatus.VIOLATION_LIVENESS);
+	}
+
 	@Test
 	public void testSpec() {
-		// ModelChecker intends to check liveness
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_LIVE_IMPLIED, "2"));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_INIT_GENERATED1, "8", "s"));
-
-		assertNoTESpec();
-		
-		// ModelChecker has finished and generated the expected amount of states
+		// Simulation has finished and generated states
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "5492", "1272", "0"));
 		assertFalse(recorder.recorded(EC.GENERAL));
-		
-		// Assert it has not found a temporal violation nor a counter example
-		assertFalse(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
-		assertFalse(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
-		assertFalse(recorder.recorded(EC.TLC_STATE_PRINT2));
 
-	assertZeroUncovered();
+		// Assert it has found the temporal violation and also a counter example
+		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
+		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
+
+		// Assert an error trace
+		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
+
+		// The actual trace differs at each simulation due to its random
+		// selection of the next state.
+
+		// Assert the error trace contains a stuttering step at position 5
+		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT3));
+
+		// Assert the error trace does NOT show back to state X
+		assertFalse("Trace shows \"Back to state...\"", recorder.recorded(EC.TLC_BACK_TO_STATE));
 	}
 }

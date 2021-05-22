@@ -29,34 +29,54 @@ package tlc2.tool.liveness;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 
 import tlc2.output.EC;
+import tlc2.output.EC.ExitStatus;
+import tlc2.tool.TLCStateInfo;
 
-public class NoSymmetryTableauModelCheckerTest extends ModelCheckerTestCase {
+public class UnsymmetricModelCheckerTestA_TTraceTest extends ModelCheckerTestCase {
 
-	public NoSymmetryTableauModelCheckerTest() {
-		super("NoSymmetryLivenessTableauMC", "symmetry");
+    @Override
+    protected boolean isTESpec() {
+		return true;
 	}
-	
+
+	public UnsymmetricModelCheckerTestA_TTraceTest() {
+		super("UnsymmetricMCA", "symmetry", ExitStatus.VIOLATION_LIVENESS);
+	}
+
 	@Test
 	public void testSpec() {
 		// ModelChecker intends to check liveness
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_LIVE_IMPLIED, "2"));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_INIT_GENERATED1, "8", "s"));
-
-		assertNoTESpec();
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_LIVE_IMPLIED, "1"));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_INIT_GENERATED1, "1", ""));
 		
 		// ModelChecker has finished and generated the expected amount of states
 		assertTrue(recorder.recorded(EC.TLC_FINISHED));
-		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "5492", "1272", "0"));
 		assertFalse(recorder.recorded(EC.GENERAL));
+		assertTrue(recorder.recordedWithStringValues(EC.TLC_STATS, "3", "2", "0"));
+	
+		// Assert it has found a temporal violation and a counter example
+		assertTrue(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
+		assertTrue(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
 		
-		// Assert it has not found a temporal violation nor a counter example
-		assertFalse(recorder.recorded(EC.TLC_TEMPORAL_PROPERTY_VIOLATED));
-		assertFalse(recorder.recorded(EC.TLC_COUNTER_EXAMPLE));
-		assertFalse(recorder.recorded(EC.TLC_STATE_PRINT2));
+		assertTrue(recorder.recorded(EC.TLC_STATE_PRINT2));
+		final List<String> expectedTrace = new ArrayList<String>(2);
+		expectedTrace.add("x = a");
+		expectedTrace.add("x = 1");
+		
+		final List<String> expectedActions = new ArrayList<>();
+		expectedActions.add(isExtendedTLCState()
+				? "<_init line 23, col 5 to line 23, col 24 of module UnsymmetricMCA_TTrace_2000000000_tlc2_tool_liveness_UnsymmetricModelCheckerTestA_TTraceTest>"
+				: TLCStateInfo.INITIAL_PREDICATE);
+		expectedActions.add("<_next line 27, col 5 to line 32, col 29 of module UnsymmetricMCA_TTrace_2000000000_tlc2_tool_liveness_UnsymmetricModelCheckerTestA_TTraceTest>");
 
-	assertZeroUncovered();
+		assertTraceWith(recorder.getRecords(EC.TLC_STATE_PRINT2), expectedTrace, expectedActions);
+
+		assertBackToState(1);
 	}
 }
