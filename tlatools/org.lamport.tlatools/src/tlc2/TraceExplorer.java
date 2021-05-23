@@ -143,9 +143,21 @@ public class TraceExplorer {
 			final OutputStream specTETLAOutStream,
 			final OutputStream specTECFGOutStream) throws IOException {
 
+		final List<MCState> trace = error.getStates();
+
 		final SpecTraceExpressionWriter writer = new SpecTraceExpressionWriter();
 
 		List<List<String>> constants = results.getModelConfig().getConstantsAsList();
+
+		// If it has a lasso, add the TTrace lasso constants to the configuration file.
+		if (trace.get(trace.size() - 1).isBackToState()) {
+			constants.add(
+				Arrays.asList(TLAConstants.TraceExplore.SPEC_TETRACE_LASSO_START + " = " + trace.get(trace.size() - 1).getStateNumber())
+			);
+			constants.add(
+				Arrays.asList(TLAConstants.TraceExplore.SPEC_TETRACE_LASSO_END + " = " + (trace.size() - 1))
+			);
+		}
 
 		// Get all reified constants;
 		List<String> reifiedConstants = new ArrayList<String>();		
@@ -199,7 +211,7 @@ public class TraceExplorer {
 
 			indentedConstants.addAll(mvsConfigConstants);
 			writer.addConstants(indentedConstants);
-		}
+		}		
 
 		// If needed, create module which contain the reified constants.
 		// First we need to handle the case where a model value is defined in
@@ -215,6 +227,14 @@ public class TraceExplorer {
 				modConstants.add(mv.toString());
 			}
 		}
+		// If it has a lasso, add the TTrace lasso constants to the modules constants
+		// so we can have it in a more convenient place (so other tools, like the Toolbox,
+		// can, for example, highlight the lasso).
+		if (trace.get(trace.size() - 1).isBackToState()) {
+			modConstants.add(TLAConstants.TraceExplore.SPEC_TETRACE_LASSO_START);
+			modConstants.add(TLAConstants.TraceExplore.SPEC_TETRACE_LASSO_END);			
+		}
+		// Create TEConstant module.
 		final String teConstantSpecName = String.format("%s_%s", originalSpecName, TLAConstants.TraceExplore.SPEC_TECONSTANTS_NAME);
 		final Set<String> teConstantModuleHashSet = new HashSet<>();
 		teConstantModuleHashSet.add(TLAConstants.BuiltInModules.TLC);
@@ -250,9 +270,7 @@ public class TraceExplorer {
 		writer.addPrimer(teSpecModuleName, originalSpecName, specTEExtendedModules);		
 
 		writer.addTraceExpressionInstance(
-				String.format("%s_%s", originalSpecName, TLAConstants.TraceExplore.EXPLORATION_MODULE_NAME));
-
-		final List<MCState> trace = error.getStates();
+				String.format("%s_%s", originalSpecName, TLAConstants.TraceExplore.EXPLORATION_MODULE_NAME));		
 
 		final String teTraceName = String.format("%s_%s", originalSpecName, TLAConstants.TraceExplore.SPEC_TETRACE_NAME);
 		

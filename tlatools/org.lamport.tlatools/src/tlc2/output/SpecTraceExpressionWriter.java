@@ -980,11 +980,12 @@ public class SpecTraceExpressionWriter extends AbstractSpecWriter {
 				// (_TETrace). Len(_TETrace) would however be off by one.
 				MCState backToState = trace.get(finalState.getStateNumber() - 1);
 				tlaBuffer.append(TLAConstants.INDENT).append(TLAConstants.INDENT).append("   ")
-						.append(TLAConstants.TLA_OR).append(TLAConstants.SPACE).append(TLAConstants.TLA_AND)
-						// Len(_TETrace) requires EXTENDS Sequences
-						.append(" i = ").append(trace.size() - 1).append(TLAConstants.CR);
+						.append(TLAConstants.TLA_OR).append(TLAConstants.SPACE).append(TLAConstants.TLA_AND)						
+						// `_TTraceLassoEnd` is a constant which contains the last state of the lasso.
+						.append(" i = ").append(TLAConstants.TraceExplore.SPEC_TETRACE_LASSO_END).append(TLAConstants.CR);
 				tlaBuffer.append(TLAConstants.INDENT).append(TLAConstants.INDENT).append("  ")
-						.append(TLAConstants.INDENTED_CONJUNCTIVE).append("j = ").append(backToState.getStateNumber())
+						// `_TTraceLassoStart` is a constant which contains the first state of the lasso.
+						.append(TLAConstants.INDENTED_CONJUNCTIVE).append("j = ").append(TLAConstants.TraceExplore.SPEC_TETRACE_LASSO_START)
 						.append(TLAConstants.CR);
 			}
 			for (String var : vars) {
