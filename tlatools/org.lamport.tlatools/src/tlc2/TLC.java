@@ -1033,23 +1033,35 @@ public class TLC {
     public int process()
     {        
         String tlcCustomHandler = System.getProperty("TLCCustomHandler");
+        ToolIO.out.println(System.getProperty("TLCCustomHandler"));
         if (tlcCustomHandler != null) {
             try {
                 Class klass = Class.forName(tlcCustomHandler);
+                ToolIO.out.println("\n\nASSIGNABLE!111111!\n\n");
                 if (ITLCCustomHandler.class.isAssignableFrom(klass)) {
+                    ToolIO.out.println("\n\nASSIGNABLE!222222!\n\n");
                     ITLCCustomHandler handler = (ITLCCustomHandler) klass.getConstructor().newInstance();
-                    handler.process(this);
+                    handler.process(this);                    
                 } else {
                     // Error if class does not implements `ITLCCustomHandler`.
+                    ToolIO.out.println("\n\nIT DOES NOTTT> IMPLEMENT >><<<\n\n");
                     System.exit(1);
                 }
             } catch (ClassNotFoundException e) {
-                System.exit(1);                
+                ToolIO.out.println("\n\nEXCCEP222444455555\n\n");
+                e.printStackTrace();
+                System.exit(1);           
             } catch (NoSuchMethodException e) {
+                ToolIO.out.println("\n\nEXCCEP2224444\n\n");
+                e.printStackTrace();
                 System.exit(1);                
             } catch (InstantiationException e) {
+                ToolIO.out.println("\n\nEXCCEP222\n\n");
+                e.printStackTrace();
                 System.exit(1);
             } catch (Exception e) {
+                ToolIO.out.println("\n\nEXCCEP\n\n");
+                e.printStackTrace();
                 System.exit(1);
             }
         }

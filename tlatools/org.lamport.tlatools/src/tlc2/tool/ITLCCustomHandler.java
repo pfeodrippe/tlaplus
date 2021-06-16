@@ -30,6 +30,6 @@ import tlc2.TLC;
 
 public interface ITLCCustomHandler {
 
-    String[] process(TLC tlc);
+    void process(TLC tlc);
     
 }
