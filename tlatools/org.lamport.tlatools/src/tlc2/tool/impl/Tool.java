@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import recife.RecifeEdnValue;
+
 import tla2sany.parser.SyntaxTreeNode;
 import tla2sany.semantic.APSubstInNode;
 import tla2sany.semantic.ExprNode;
@@ -2247,6 +2249,11 @@ public abstract class Tool
               Value aval = this.eval(args[1], c, s0, s1, control, cm);
               result = fcn.apply(aval, control);
             }
+            else if(fval instanceof Applicable) {
+              Applicable fcn = (Applicable)fval;
+              Value aval = this.eval(args[1], c, s0, s1, control, cm);
+              result = fcn.apply(aval, control);
+            }
             else {
               Assert.fail("A non-function (" + fval.getKindString() + ") was applied" +
                           " as a function.\n" + expr, expr, c);
@@ -2296,15 +2303,18 @@ public abstract class Tool
         case OPCODE_rc:     // RcdConstructor
           {
             int alen = args.length;
-            UniqueString[] names = new UniqueString[alen];
+            //UniqueString[] names = new UniqueString[alen];
+            String[] names = new String[alen];
             Value[] vals = new Value[alen];
             for (int i = 0; i < alen; i++) {
               OpApplNode pairNode = (OpApplNode)args[i];
               ExprOrOpArgNode[] pair = pairNode.getArgs();
-              names[i] = ((StringValue)pair[0].getToolObject(toolId)).getVal();
+              //names[i] = ((StringValue)pair[0].getToolObject(toolId)).getVal();
+              names[i] = ((StringValue)pair[0].getToolObject(toolId)).getVal().toString();
               vals[i] = this.eval(pair[1], c, s0, s1, control, coverage ? cm.get(pairNode) : cm);
             }
-            return setSource(expr, new RecordValue(names, vals, false, cm));
+            //return setSource(expr, new RecordValue(names, vals, false, cm));
+            return setSource(expr, RecifeEdnValue.createMap(names, vals, cm));
           }
         case OPCODE_rs:     // RcdSelect
           {

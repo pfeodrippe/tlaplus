@@ -6,6 +6,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 import tlc2.TLCGlobals;
@@ -28,6 +29,7 @@ public final class ValueInputStream implements ValueConstants, IValueInputStream
 
   private final BufferedDataInputStream dis;
   private final HandleTable handles;
+  public static final HashMap<Byte, IValueRead> customValues = new HashMap<>();
   
   public ValueInputStream(InputStream in) throws IOException 
   {
@@ -53,6 +55,11 @@ public final class ValueInputStream implements ValueConstants, IValueInputStream
 	@Override
 	public final IValue read() throws IOException {
 		final byte kind = this.dis.readByte();
+
+		final IValueRead customValue = customValues.get(kind);
+		if (customValue != null) {
+			return customValue.empty().createFrom(this);
+		}
 
 		switch (kind) {
 		case BOOLVALUE: {
@@ -85,14 +92,18 @@ public final class ValueInputStream implements ValueConstants, IValueInputStream
 		case DUMMYVALUE: {
 			return (IValue) this.handles.getValue(this.readNat());
 		}
-		default: {
-			throw new WrongInvocationException("ValueInputStream: Can not unpickle a value of kind " + kind);
-		}
-		}
+		}		
+
+		throw new WrongInvocationException("ValueInputStream: Can not unpickle a value of kind " + kind);
 	}
 	
 	public final IValue read(final Map<String, UniqueString> tbl) throws IOException {
 		final byte kind = this.dis.readByte();
+
+		final IValueRead customValue = customValues.get(kind);
+		if (customValue != null) {
+		 	return customValue.empty().createFrom(this, tbl);
+		}
 
 		switch (kind) {
 		case BOOLVALUE: {
@@ -124,11 +135,10 @@ public final class ValueInputStream implements ValueConstants, IValueInputStream
 		}
 		case DUMMYVALUE: {
 			return (IValue) this.handles.getValue(this.readNat());
+		}		
 		}
-		default: {
-			throw new WrongInvocationException("ValueInputStream: Can not unpickle a value of kind " + kind);
-		}
-		}
+
+		throw new WrongInvocationException("ValueInputStream: Can not unpickle a value of kind " + kind);
 	}
  
   @Override

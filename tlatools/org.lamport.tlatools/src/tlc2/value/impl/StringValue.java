@@ -14,6 +14,7 @@ import tlc2.tool.FingerprintException;
 import tlc2.tool.coverage.CostModel;
 import tlc2.util.FP64;
 import tlc2.value.IMVPerm;
+import tlc2.value.IStringValue;
 import tlc2.value.IValue;
 import tlc2.value.IValueInputStream;
 import tlc2.value.IValueOutputStream;
@@ -47,10 +48,11 @@ public class StringValue extends Value {
   @Override
   public final int compareTo(Object obj) {
     try {
-      if (obj instanceof StringValue) {
+      if (obj instanceof IStringValue) {
+        return this.val.compareTo(((IStringValue)obj).getUniqueString());
+      } else if (obj instanceof StringValue) {
         return this.val.compareTo(((StringValue)obj).val);
-      }
-      if (!(obj instanceof ModelValue)) {
+      } else if (!(obj instanceof ModelValue)) {
         Assert.fail("Attempted to compare string " + Values.ppr(this.toString()) +
         " with non-string:\n" + Values.ppr(obj.toString()), getSource());
       }
@@ -66,6 +68,9 @@ public class StringValue extends Value {
     try {
       if (obj instanceof StringValue) {
         return this.val.equals(((StringValue)obj).getVal());
+      }
+      if (obj instanceof IStringValue) {
+        return this.val.equals(((IStringValue)obj).getUniqueString());
       }
       if (!(obj instanceof ModelValue)) {
         Assert.fail("Attempted to check equality of string " + Values.ppr(this.toString()) +
