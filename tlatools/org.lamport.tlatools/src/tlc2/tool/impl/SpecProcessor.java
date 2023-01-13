@@ -105,6 +105,8 @@ import util.FilenameToStream;
 import util.ToolIO;
 import util.UniqueString;
 
+import recife.RecifeEdnValue;
+
 public class SpecProcessor implements ValueConstants, ToolGlobals {
 	
     private final String rootFile; // The root file of this spec.
@@ -1704,7 +1706,7 @@ public class SpecProcessor implements ValueConstants, ToolGlobals {
 
         case NumeralKind: {
             NumeralNode expr1 = (NumeralNode) expr;
-            IntValue val = IntValue.gen(expr1.val());
+            Value val = RecifeEdnValue.createInt(expr1.val());
             // LL added this test on 20 Jul 2011; otherwise
             // TLC treats a number bigger than MAX_VALUE 
             // (2^31-1 or 2,147,483,647) as if it equals 0.
@@ -1722,7 +1724,8 @@ public class SpecProcessor implements ValueConstants, ToolGlobals {
         }
         case StringKind: {
             StringNode expr1 = (StringNode) expr;
-            StringValue val = new StringValue(expr1.getRep());
+            //StringValue val = new StringValue(expr1.getRep());
+            Value val = RecifeEdnValue.createString(expr1.getRep().toString());
             expr1.setToolObject(toolId, val);
             return;
         }

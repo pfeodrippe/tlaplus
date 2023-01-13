@@ -2304,13 +2304,13 @@ public abstract class Tool
           {
             int alen = args.length;
             //UniqueString[] names = new UniqueString[alen];
-            String[] names = new String[alen];
+            Value[] names = new Value[alen];
             Value[] vals = new Value[alen];
             for (int i = 0; i < alen; i++) {
               OpApplNode pairNode = (OpApplNode)args[i];
               ExprOrOpArgNode[] pair = pairNode.getArgs();
               //names[i] = ((StringValue)pair[0].getToolObject(toolId)).getVal();
-              names[i] = ((StringValue)pair[0].getToolObject(toolId)).getVal().toString();
+              names[i] = ((RecifeEdnValue)pair[0].getToolObject(toolId));
               vals[i] = this.eval(pair[1], c, s0, s1, control, coverage ? cm.get(pairNode) : cm);
             }
             //return setSource(expr, new RecordValue(names, vals, false, cm));
@@ -2436,7 +2436,8 @@ public abstract class Tool
             for (int i = 0; i < alen; i++) {
               vals[i] = this.eval(args[i], c, s0, s1, control, cm);
             }
-            return setSource(expr, new TupleValue(vals, cm));
+            //return setSource(expr, new TupleValue(vals, cm));
+            return setSource(expr, RecifeEdnValue.createTuple(vals, cm));
           }
         case OPCODE_uc:     // UnboundedChoose
           {
