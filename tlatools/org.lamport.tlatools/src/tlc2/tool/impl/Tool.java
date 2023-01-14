@@ -2247,11 +2247,6 @@ public abstract class Tool
               Value aval = this.eval(args[1], c, s0, s1, control, cm);
               result = fcn.apply(aval, control);
             }
-            else if(fval instanceof Applicable) {
-              Applicable fcn = (Applicable)fval;
-              Value aval = this.eval(args[1], c, s0, s1, control, cm);
-              result = fcn.apply(aval, control);
-            }
             else {
               Assert.fail("A non-function (" + fval.getKindString() + ") was applied" +
                           " as a function.\n" + expr, expr, c);
