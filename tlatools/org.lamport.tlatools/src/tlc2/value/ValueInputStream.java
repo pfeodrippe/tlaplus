@@ -56,11 +56,6 @@ public final class ValueInputStream implements ValueConstants, IValueInputStream
 	public final IValue read() throws IOException {
 		final byte kind = this.dis.readByte();
 
-		final IValueRead customValue = customValues.get(kind);
-		if (customValue != null) {
-			return customValue.empty().createFrom(this);
-		}
-
 		switch (kind) {
 		case BOOLVALUE: {
 			return (this.dis.readBoolean()) ? BoolValue.ValTrue : BoolValue.ValFalse;
@@ -92,18 +87,18 @@ public final class ValueInputStream implements ValueConstants, IValueInputStream
 		case DUMMYVALUE: {
 			return (IValue) this.handles.getValue(this.readNat());
 		}
-		}		
+		}
+		
+		final IValueRead customValue = customValues.get(kind);
+		if (customValue != null) {
+			return customValue.empty().createFrom(this);
+		}
 
 		throw new WrongInvocationException("ValueInputStream: Can not unpickle a value of kind " + kind);
 	}
 	
 	public final IValue read(final Map<String, UniqueString> tbl) throws IOException {
 		final byte kind = this.dis.readByte();
-
-		final IValueRead customValue = customValues.get(kind);
-		if (customValue != null) {
-		 	return customValue.empty().createFrom(this, tbl);
-		}
 
 		switch (kind) {
 		case BOOLVALUE: {
@@ -136,6 +131,11 @@ public final class ValueInputStream implements ValueConstants, IValueInputStream
 		case DUMMYVALUE: {
 			return (IValue) this.handles.getValue(this.readNat());
 		}		
+		}
+
+		final IValueRead customValue = customValues.get(kind);
+		if (customValue != null) {
+		 	return customValue.empty().createFrom(this, tbl);
 		}
 
 		throw new WrongInvocationException("ValueInputStream: Can not unpickle a value of kind " + kind);

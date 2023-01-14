@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import recife.RecifeEdnValue;
-
 import tla2sany.parser.SyntaxTreeNode;
 import tla2sany.semantic.APSubstInNode;
 import tla2sany.semantic.ExprNode;
@@ -2303,18 +2301,15 @@ public abstract class Tool
         case OPCODE_rc:     // RcdConstructor
           {
             int alen = args.length;
-            //UniqueString[] names = new UniqueString[alen];
-            Value[] names = new Value[alen];
+            UniqueString[] names = new UniqueString[alen];
             Value[] vals = new Value[alen];
             for (int i = 0; i < alen; i++) {
               OpApplNode pairNode = (OpApplNode)args[i];
               ExprOrOpArgNode[] pair = pairNode.getArgs();
-              //names[i] = ((StringValue)pair[0].getToolObject(toolId)).getVal();
-              names[i] = ((RecifeEdnValue)pair[0].getToolObject(toolId));
+              names[i] = ((StringValue)pair[0].getToolObject(toolId)).getVal();
               vals[i] = this.eval(pair[1], c, s0, s1, control, coverage ? cm.get(pairNode) : cm);
             }
-            //return setSource(expr, new RecordValue(names, vals, false, cm));
-            return setSource(expr, RecifeEdnValue.createMap(names, vals, cm));
+            return setSource(expr, new RecordValue(names, vals, false, cm));
           }
         case OPCODE_rs:     // RcdSelect
           {
@@ -2436,8 +2431,7 @@ public abstract class Tool
             for (int i = 0; i < alen; i++) {
               vals[i] = this.eval(args[i], c, s0, s1, control, cm);
             }
-            //return setSource(expr, new TupleValue(vals, cm));
-            return setSource(expr, RecifeEdnValue.createTuple(vals, cm));
+            return setSource(expr, new TupleValue(vals, cm));
           }
         case OPCODE_uc:     // UnboundedChoose
           {

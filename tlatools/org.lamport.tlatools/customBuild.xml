@@ -9,7 +9,7 @@
 
 	<!-- setup classpath -->
 	<path id="project.classpath">
-		<pathelement path="lib/"/>  
+
 	</path>
 
 	<!-- timestamp -->

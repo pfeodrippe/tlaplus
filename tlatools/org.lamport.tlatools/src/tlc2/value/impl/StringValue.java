@@ -48,11 +48,13 @@ public class StringValue extends Value {
   @Override
   public final int compareTo(Object obj) {
     try {
+      if (obj instanceof StringValue) {
+        return this.val.compareTo(((StringValue)obj).val);
+      }
       if (obj instanceof IStringValue) {
         return this.val.compareTo(((IStringValue)obj).getUniqueString());
-      } else if (obj instanceof StringValue) {
-        return this.val.compareTo(((StringValue)obj).val);
-      } else if (!(obj instanceof ModelValue)) {
+      }
+      if (!(obj instanceof ModelValue)) {
         Assert.fail("Attempted to compare string " + Values.ppr(this.toString()) +
         " with non-string:\n" + Values.ppr(obj.toString()), getSource());
       }
