@@ -72,6 +72,19 @@ public class REPL {
      * @return the pretty printed result of the evaluation or an empty string if there was an error.
      */
     public String processInput(String evalExpr) {
+        Value exprVal = processValue(evalExpr);
+        if (exprVal == null) {
+            return "";
+        }
+        return exprVal.toString();
+    }
+
+    /**
+     * Evaluate the given string input as a TLA+ expression.
+     *
+     * @return the value result of the evaluation or null if there was an error.
+     */
+    public Value processValue(String evalExpr) {
 
         // The modules we will extend in the REPL environment.
         String moduleExtends = "Reals,Sequences,Bags,FiniteSets,TLC,Randomization";
@@ -143,7 +156,7 @@ public class REPL {
 				// above.
 				tlc2.module.TLC.OUTPUT = replWriter;
 				final Value exprVal = (Value) tool.eval(valueNode.getBody());
-				return exprVal.toString();
+				return exprVal;
             } catch (EvalException exc) {
                 // TODO: Improve error messages with more specific detail.
             	System.out.printf("Error evaluating expression: '%s'%n%s%n", evalExpr, exc);
@@ -177,7 +190,7 @@ public class REPL {
         } catch (IOException pe) {
             pe.printStackTrace();
         }
-        return "";
+        return null;
     }
 
     /**
