@@ -288,4 +288,67 @@ public class TLCGlobals
 			return coverage > 0;
 		}
 	}
+	
+	/**
+	 * Reset TLC globals to their initial state to allow running TLC multiple
+	 * times in the same JVM. This addresses issue #891.
+	 * 
+	 * WARNING: This method should only be called when NO TLC instances are
+	 * running. Calling this while TLC is running will cause undefined behavior.
+	 * 
+	 * @see <a href="https://github.com/tlaplus/tlaplus/issues/891">Issue #891</a>
+	 */
+	public static synchronized void reset() {
+		// Reset checker references
+		mainChecker = null;
+		simulator = null;
+		
+		// Reset metadata directory
+		metaDir = null;
+		
+		// Reset number of workers to default
+		numWorkers = 1;
+		
+		// Reset liveness parameters to defaults
+		livenessThreshold = 0.1d;
+		livenessGraphSizeThreshold = 0.1d;
+		livenessRatio = 0.2d;
+		lnCheck = "default";
+		
+		// Reset coverage
+		coverageInterval = -1;
+		
+		// Reset DFID
+		DFIDMax = -1;
+		
+		// Reset flags
+		continuation = false;
+		printDiffsOnly = false;
+		warn = true;
+		useView = false;
+		useGZIP = false;
+		debug = false;
+		tool = false;
+		expand = true;
+		
+		// Reset checkpoint state
+		forceChkpt = false;
+		lastChkpt = System.currentTimeMillis();
+		
+		// Reset TLC module OUTPUT
+		// Note: We close it first in case it's open
+		if (tlc2.module.TLC.OUTPUT != null) {
+			try {
+				tlc2.module.TLC.OUTPUT.flush();
+				tlc2.module.TLC.OUTPUT.close();
+			} catch (Exception e) {
+				// Ignore errors during cleanup
+			}
+			tlc2.module.TLC.OUTPUT = null;
+		}
+		
+		// Note: We don't reset chkptDuration as it's set from system property
+		// Note: We don't reset setBound, enumBound as they are configuration
+	}
 }
+

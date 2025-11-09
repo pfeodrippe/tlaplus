@@ -301,11 +301,28 @@ Implements liveness checking using SCC detection:
 
 ### Architectural Limitations
 
-1. **Global Mutable State Everywhere**: TLC heavily uses global variables (`TLCGlobals`), making it difficult to:
+1. **Global Mutable State Everywhere** (**PARTIALLY FIXED**): TLC heavily uses global variables (`TLCGlobals`), making it difficult to:
    - Run multiple model checks in the same JVM
    - Use TLC as a library
    - Write unit tests that don't interfere with each other
-   - **Workaround**: Run TLC in separate processes
+   - **Specific Issue**: [#891](https://github.com/tlaplus/tlaplus/issues/891) tracks the effort to remove all static global variables
+   - **Key Problem Globals**:
+     - `TLCGlobals.mainChecker` and `TLCGlobals.simulator` - set during model checking and never reset
+     - `TLCGlobals.metaDir` - path to metadata directory
+     - `UniqueString.internTbl` - string interning table that accumulates strings across runs
+     - `TLCGlobals.lastChkpt` - checkpoint timestamp
+     - `tlc2.module.TLC.OUTPUT` - output writer that needs cleanup
+     - `RandomEnumerableValues` - ThreadLocal random number generators
+     - Various flags: `coverageInterval`, `DFIDMax`, `continuation`, etc.
+   - **Impact**: Running TLC twice in the same JVM without using classloader isolation fails with unpredictable errors
+   - **SOLUTION** (as of 2025-11-09): Call these methods to reset global state between TLC runs:
+     ```java
+     TLCGlobals.reset();          // Reset global flags and references
+     UniqueString.initialize();    // Reset string intern table
+     RandomEnumerableValues.reset(); // Reset random number generators
+     ```
+   - **Workaround** (legacy): Run TLC in separate processes, or use `IsolatedTestCaseRunner` which loads TLC in isolated classloaders
+   - **Test**: See `test/tlc2/tool/RunTwiceTest.java` for a demonstration that TLC can now run twice in the same JVM
 
 2. **Sequential Liveness Checking**: Tarjan's SCC algorithm runs single-threaded, creating a bottleneck
    - Liveness checking can take longer than safety checking
