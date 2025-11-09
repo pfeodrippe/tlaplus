@@ -7,3 +7,5 @@ ModelB_TTrace*.tla
 ModelB_TTrace*.bin
 ModelCounter_TTrace*.tla
 ModelCounter_TTrace*.bin
+ModelComplexQueue_TTrace*.tla
+ModelComplexQueue_TTrace*.bin
