@@ -34,7 +34,7 @@ public class TLCTestOverrides implements ITLCOverrides {
 	 */
 	@Override
 	public Class[] get() {
-		return new Class[] { EvaluatingValueTest.class, UserModuleOverrideAnnotationImpl.class };
+	return new Class[] { EvaluatingValueTest.class, UserModuleOverrideAnnotationImpl.class, RunFlagModuleImpl.class, PersistentFlagImpl.class };
 	}
 
 }

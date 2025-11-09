@@ -14,8 +14,8 @@ public class RunTwiceJUnitTest {
 
     @Test
     public void testSecondRunFailsIfNoReset() throws Exception {
-        // Run ModelA (designed to produce an invariant violation)
-        final int r1 = runTLC("test-model/ModelA.tla");
+    // Run ModelA (designed to produce an invariant violation)
+    final int r1 = runTLC("test-model/ModelA.tla");
         // Expect a non-zero exit code for invariant violation
         if (r1 == 0) {
             throw new AssertionError("ModelA should report invariant violation");
@@ -28,7 +28,8 @@ public class RunTwiceJUnitTest {
         }
 
         // Try running ModelB without resetting globals — this should NOT silently succeed.
-        final int r2 = runTLC("test-model/ModelB.tla");
+    // Run the RunFlag model that checks for TLC global state.
+    final int r2 = runTLC("test-model/ModelB_RunFlag.tla");
         // If the second run returns 0 here, that means globals didn't interfere — fail the test
         if (r2 == 0) {
             throw new AssertionError("Second run unexpectedly succeeded without resetting globals");
@@ -37,18 +38,18 @@ public class RunTwiceJUnitTest {
 
     @Test
     public void testSecondRunSucceedsAfterReset() throws Exception {
-        // Run ModelA
-        final int r1 = runTLC("test-model/ModelA.tla");
+    // Run ModelA
+    final int r1 = runTLC("test-model/ModelA.tla");
         if (r1 == 0) {
             throw new AssertionError("ModelA should report invariant violation");
         }
 
-        // Properly reset globals
-        TLCGlobals.reset();
-        RandomEnumerableValues.reset();
+    // Properly reset globals
+    TLCGlobals.reset();
+    RandomEnumerableValues.reset();
 
         // Now run ModelB and assert it behaves (we expect a non-zero violation code in our small models)
-        final int r2 = runTLC("test-model/ModelB.tla");
+    final int r2 = runTLC("test-model/ModelB_RunFlag.tla");
         if (r2 == 0) {
             throw new AssertionError("ModelB should report invariant violation on a clean run");
         }
