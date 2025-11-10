@@ -15,3 +15,5 @@ ModelWire*_TTrace*.tla
 ModelWire*_TTrace*.bin
 DynamicSpec*_TTrace*.tla
 DynamicSpec*_TTrace*.bin
+IsolatedDynamicSpec*_TTrace*.tla
+IsolatedDynamicSpec*_TTrace*.bin

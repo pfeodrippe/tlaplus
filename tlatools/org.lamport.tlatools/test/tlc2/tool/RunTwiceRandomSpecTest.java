@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import tlc2.TLC;
-import tlc2.TLCGlobals;
 
 /**
  * Reproduces and validates the fix for operator cache bug by generating different specs
@@ -37,18 +36,15 @@ import tlc2.TLCGlobals;
  *          Result: FAILS at x=9 (correct behavior)
  *          Exit Code: 2110
  * 
- * RESET: Clears module AST cache via TLCGlobals.reset()
- *        This calls ModuleASTCacheManager.clearModuleASTCache() 
- * 
- * RUN 3: Spec2 again (after reset)
- *        With TheOp == 4 + 4 = 8 (correctly recalculated)
+ * RUN 3 (ISOLATED): Spec2 executed through {@link TLCIsolated}
+ *        Every run uses a fresh class loader and clean TLCGlobals state
  *        Result: FAILS at x=9 (correct behavior)
  *        Exit Code: 2110
  * 
  * VALIDATION:
- * - Both RUN 2 and RUN 3 produce the same result (fail at x=9)
- * - This proves reset() successfully clears operator definition caches
- * - Without reset, the bug would cause RUN 2 to fail at x=3 (wrong value)
+ * - Run 2 (same JVM) and Run 3 (isolated loader) both fail at x=9
+ * - Demonstrates that operator caches no longer leak between in-process runs
+ * - Provides an ergonomic API for library consumers needing isolated TLC runs
  */
 public class RunTwiceRandomSpecTest {
 
@@ -93,20 +89,16 @@ public class RunTwiceRandomSpecTest {
             throw new AssertionError("RUN 2 should fail with 2110, but got: " + exitCode2);
         }
 
-        // ===== RESET =====
-        System.out.println("RESET - Calling TLCGlobals.deepReset()...");
-        TLCGlobals.deepReset();
-        System.out.println("RESET - All caches should be cleared\n");
-
-        // ===== RUN 3: Run with the new spec after reset =====
-        System.out.println("RUN 3 - Running TLC on DynamicSpec with wire_2 operators (WITH reset)...");
-        System.out.println("        Will use correct TheOp=8, so fails at x=9 (exit 2110)\n");
-        int exitCode3 = runTLC(SPEC_FILE_PATH);
-        System.out.println("RUN 3 - Completed with exit code: " + exitCode3);
-        if (exitCode3 == 2110) {
-            System.out.println("✓ RUN 3 - FAILED (invariant x <= 8 violated at x=9)\n");
+        // ===== RUN 3: Execute spec using isolated class loader =====
+        System.out.println("RUN 3 - Running TLC on DynamicSpec with wire_2 operators using TLCIsolated...");
+        System.out.println("        Each run uses a fresh class loader (no shared TLCGlobals state)\n");
+        final TLCIsolatedExecutor.RunOutcome isolatedOutcome = runTLCIsolated("run3");
+        System.out.println("RUN 3 - Completed with exit code: " + isolatedOutcome.getExitCode());
+        if (isolatedOutcome.getExitCode() == 2110 && Integer.valueOf(9).equals(isolatedOutcome.getLastIntValue())) {
+            System.out.println("✓ RUN 3 - FAILED (invariant x <= 8 violated at x=9 with isolated loader)\n");
         } else {
-            throw new AssertionError("RUN 3 should fail with 2110, but got: " + exitCode3);
+            throw new AssertionError("RUN 3 should fail at x=9 under isolated loader; observed exit code "
+                    + isolatedOutcome.getExitCode() + " and final x value " + isolatedOutcome.getLastIntValue());
         }
 
         // ===== VERIFICATION SUMMARY =====
@@ -114,9 +106,8 @@ public class RunTwiceRandomSpecTest {
         System.out.println("RUN 1 - wire_1 operators: PASSED");
         System.out.println("RUN 2 - wire_2 operators (no reset): " + 
             (exitCode2 == 0 ? "PASSED" : "FAILED (bug reproduced)"));
-        System.out.println("RESET - Cache cleared");
-        System.out.println("RUN 3 - wire_2 operators (with reset): PASSED");
-        System.out.println("\n✓ TEST DEMONSTRATES: Dynamic spec caching with different operators");
+        System.out.println("RUN 3 - wire_2 operators (isolated class loader): PASSED");
+        System.out.println("\n✓ TEST DEMONSTRATES: Dynamic spec caching with different operators and isolated TLC runs");
     }
 
     private static void generateSpec1(String specPath, String cfgPath) throws IOException {
@@ -168,8 +159,21 @@ public class RunTwiceRandomSpecTest {
     private static int runTLC(final String modelPath) throws Exception {
         TLC tlc = new TLC();
         String[] args = new String[] { "-workers", "1", "-deadlock", "-metadir", "states/RunTwiceRandomSpecTest",
-                modelPath };
+                "-noTE", "-noTEBin", modelPath };
         tlc.handleParameters(args);
         return tlc.process();
+    }
+
+    private static TLCIsolatedExecutor.RunOutcome runTLCIsolated(final String runId)
+            throws ReflectiveOperationException {
+        final String[] args = new String[] {
+                "-workers", "1",
+                "-deadlock",
+                "-metadir", "states/RunTwiceRandomSpecTest/" + runId,
+                "-noTE",
+                "-noTEBin",
+                SPEC_FILE_PATH
+        };
+        return TLCIsolated.runWithTrace("x", args);
     }
 }
