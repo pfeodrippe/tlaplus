@@ -884,6 +884,8 @@
 					<include name="tlc2/tool/liveness/UnsymmetricModelCheckerTestA.java" />
 					<include name="tlc2/tool/liveness/UnsymmetricModelCheckerTestA_TTraceTest.java" />
 					<include name="tlc2/tool/PrintTraceRaceTest.java" />
+						<!-- Ensure our RunTwice JUnit test is part of the CI test-set -->
+						<include name="tlc2/tool/RunTwiceJUnitTest.java" />
 					<include name="tlc2/tool/PrintTraceRaceTest_TTraceTest.java" />
 					<include name="tlc2/tool/RandomElementSimulationTest.java" />
 					<include name="tlc2/tool/RandomElementSimulationTest_TTraceTest.java" />

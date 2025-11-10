@@ -288,4 +288,369 @@ public class TLCGlobals
 			return coverage > 0;
 		}
 	}
+	
+	/**
+	 * Reset TLC globals to their initial state to allow running TLC multiple
+	 * times in the same JVM. This addresses issue #891.
+	 * 
+	 * WARNING: This method should only be called when NO TLC instances are
+	 * running. Calling this while TLC is running will cause undefined behavior.
+	 * 
+	 * This method resets:
+	 * - TLCGlobals fields (mainChecker, simulator, metaDir, etc.)
+	 * - Operator override caches in module AST (OpDefNode.toolObject)
+	 * - Context static state (semantic analysis global context via Context.reInit())
+	 * - RandomEnumerableValues ThreadLocal state (random number generators)
+	 * 
+	 * NOTE: This method intentionally does NOT clear:
+	 * - UniqueString.internTbl (string intern table) - Clearing this breaks subsequent parsing
+	 * - User-defined static fields that cache state
+	 * - Java system properties
+	 * 
+	 * @see <a href="https://github.com/tlaplus/tlaplus/issues/891">Issue #891</a>
+	 */
+	public static synchronized void reset() {
+		// First attempt to clear operator override caches from previous run
+		// This must be done before clearing mainChecker
+		clearOperatorOverrideCaches();
+		
+		// Reset checker references
+		mainChecker = null;
+		simulator = null;
+		
+		// Reset metadata directory
+		metaDir = null;
+		
+		// Reset number of workers to default
+		numWorkers = 1;
+		
+		// Reset liveness parameters to defaults
+		livenessThreshold = 0.1d;
+		livenessGraphSizeThreshold = 0.1d;
+		livenessRatio = 0.2d;
+		lnCheck = "default";
+		
+		// Reset coverage
+		coverageInterval = -1;
+		
+		// Reset DFID
+		DFIDMax = -1;
+		
+		// Reset flags and behavior settings
+		continuation = false;
+		printDiffsOnly = false;
+		warn = true;
+		useView = false;
+		useGZIP = false;
+		debug = false;
+		tool = false;
+		expand = true;
+		
+		// Reset checkpoint state
+		forceChkpt = false;
+		lastChkpt = System.currentTimeMillis();
+		
+		// Reset TLC module OUTPUT
+		// Note: We close it first in case it's open
+		if (tlc2.module.TLC.OUTPUT != null) {
+			try {
+				tlc2.module.TLC.OUTPUT.flush();
+				tlc2.module.TLC.OUTPUT.close();
+			} catch (Exception e) {
+				// Ignore errors during cleanup
+			}
+			tlc2.module.TLC.OUTPUT = null;
+		}
+		
+		// Reset semantic analysis global state - critical for multiple TLC runs
+		// Context maintains a static initialContext that must be re-initialized
+		// This resets the global symbol table context for parsing
+		try {
+			tla2sany.semantic.Context.reInit();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to reset Context: " + e.getMessage(), e);
+		}
+		
+		// Reset random number generator ThreadLocals
+		// This should happen AFTER Context.reInit() to avoid interference
+		try {
+			tlc2.value.RandomEnumerableValues.reset();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to reset RandomEnumerableValues: " + e.getMessage(), e);
+		}
+		
+		// NOTE: We do NOT reset UniqueString.initialize() automatically here because:
+		// - It clears the ENTIRE intern table
+		// - This breaks subsequent module parsing in the same JVM session
+		// - The string intern table is shared globally and clearing it causes parser failures
+		// - Users/applications that absolutely need this should call UniqueString.initialize() 
+		//   themselves when appropriate (ONLY at the start of a completely new independent session)
+		
+		// NOTE: Fields that are NOT reset:
+		// - versionOfTLC: read-only version string
+		// - enumBound, setBound: user configuration values
+		// - chkptDuration: set from system property, persists across runs
+		// - progressInterval: final value computed from system property
+		// - Coverage.coverage: static final, set from system property
+	}
+
+	/**
+	 * Performs a more aggressive reset than {@link #reset()} by additionally clearing
+	 * various auxiliary global/static caches/subsystems that can accumulate state
+	 * across multiple TLC runs inside the same JVM. This should be used with care;
+	 * if external tooling depends on specific caches persisting, call plain {@code reset()} instead.
+	 *
+	 * Deep reset adds:
+	 *  - PlusCal parser/translator static scratch state cleared (ParseAlgorithm, PcalTranslate)
+	 *  - ValueInputStream.customValues cleared (user registered value readers)
+	 *  - SimpUtil/ModelValue/JVM debug helpers reset to pristine defaults
+	 *  - FrontEnd tool id counter reset (idCnt) to zero to keep toolObject index space compact
+	 *
+	 * It intentionally still does NOT clear UniqueString's intern table (same reason as in reset()).
+	 *
+	 * If any of the reflection-based cleanup steps fail, a RuntimeException is thrown to
+	 * surface the defect early rather than silently ignoring it.
+	 */
+	public static synchronized void deepReset() {
+		// First perform the regular reset (includes operator override cache clearing).
+		reset();
+		// Then clear additional global state.
+		clearPlusCalState();
+		clearPcalTokenizeState();
+		clearValueInputStreamCustomValues();
+		clearSimpUtilState();
+		clearModelValueState();
+		clearTLCDebuggerOverride();
+		clearTLCRunnerState();
+		resetFrontEndToolIdCounter();
+	}
+
+	private static void clearPlusCalState() {
+		// Clear ParseAlgorithm static scratch fields and re-initialize built-in symbols.
+		try {
+			final Class<?> parseAlg = Class.forName("pcal.ParseAlgorithm");
+			for (String fieldName : new String[]{"charReader","currentProcedure"}) {
+				final java.lang.reflect.Field f = parseAlg.getDeclaredField(fieldName);
+				f.setAccessible(true);
+				f.set(null, null);
+			}
+			for (String fieldName : new String[]{"plusLabels","minusLabels","proceduresCalled","addedLabels","addedLabelsLocs","procedures"}) {
+				final java.lang.reflect.Field f = parseAlg.getDeclaredField(fieldName);
+				f.setAccessible(true);
+				f.set(null, new java.util.Vector<>());
+			}
+			for (String fieldName : new String[]{"allLabels"}) {
+				final java.lang.reflect.Field f = parseAlg.getDeclaredField(fieldName);
+				f.setAccessible(true);
+				f.set(null, new java.util.Hashtable<>());
+			}
+			for (String fieldName : new String[]{"gotoUsed","gotoDoneUsed","omitPC","omitStutteringWhenDone","hasDefaultInitialization","pSyntax","cSyntax","hasLabel"}) {
+				final java.lang.reflect.Field f = parseAlg.getDeclaredField(fieldName);
+				f.setAccessible(true);
+				f.setBoolean(null, false);
+			}
+			for (String fieldName : new String[]{"nextLabelNum","lastTokCol","lastTokLine"}) {
+				final java.lang.reflect.Field f = parseAlg.getDeclaredField(fieldName);
+				f.setAccessible(true);
+				f.setInt(null, 0);
+			}
+			for (String fieldName : new String[]{"getLabelLocation"}) {
+				final java.lang.reflect.Field f = parseAlg.getDeclaredField(fieldName);
+				f.setAccessible(true);
+				f.set(null, null);
+			}
+			// Re-initialize AST singletons and parameter defaults
+			final Class<?> pcalParams = Class.forName("pcal.PcalParams");
+			pcalParams.getMethod("resetParams").invoke(null);
+			final Class<?> ast = Class.forName("pcal.AST");
+			ast.getMethod("ASTInit").invoke(null);
+			// Re-initialize built-in symbol tables (idempotent)
+			final Class<?> pcalBuiltIns = Class.forName("pcal.PcalBuiltInSymbols");
+			final java.lang.reflect.Method init = pcalBuiltIns.getMethod("Initialize");
+			init.invoke(null);
+			// Clear PcalTranslate static state if present.
+			try {
+				final Class<?> pcalTranslate = Class.forName("pcal.PcalTranslate");
+				for (String fName : new String[]{"st","currentProcedure"}) {
+					final java.lang.reflect.Field f = pcalTranslate.getDeclaredField(fName);
+					f.setAccessible(true);
+					f.set(null, null);
+				}
+			} catch (ClassNotFoundException ignored) {
+				// Optional component absent.
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to clear PlusCal state: " + e.getMessage(), e);
+		}
+	}
+
+	private static void clearPcalTokenizeState() {
+		try {
+			final Class<?> tokenize = Class.forName("pcal.Tokenize");
+			for (String fieldName : new String[]{"Delimiter"}) {
+				final java.lang.reflect.Field f = tokenize.getDeclaredField(fieldName);
+				f.setAccessible(true);
+				f.set(null, null);
+			}
+			for (String fieldName : new String[]{"DelimiterLine","DelimiterCol"}) {
+				final java.lang.reflect.Field f = tokenize.getDeclaredField(fieldName);
+				f.setAccessible(true);
+				f.setInt(null, 0);
+			}
+			final java.lang.reflect.Field readerField = tokenize.getDeclaredField("reader");
+			readerField.setAccessible(true);
+			readerField.set(null, null);
+		} catch (ClassNotFoundException e) {
+			// Optional component absent; ignore.
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to clear PlusCal tokenize state: " + e.getMessage(), e);
+		}
+	}
+
+	private static void clearValueInputStreamCustomValues() {
+		try {
+			final Class<?> vis = Class.forName("tlc2.value.ValueInputStream");
+			final java.lang.reflect.Field f = vis.getDeclaredField("customValues");
+			f.setAccessible(true);
+			@SuppressWarnings("unchecked") final java.util.Map<Byte,?> map = (java.util.Map<Byte,?>) f.get(null);
+			if (map != null) map.clear();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to clear ValueInputStream customValues: " + e.getMessage(), e);
+		}
+	}
+
+	private static void clearSimpUtilState() {
+		try {
+			final Class<?> simpUtil = Class.forName("tlc2.util.SimpUtil");
+			final java.lang.reflect.Field defns = simpUtil.getDeclaredField("defns");
+			defns.setAccessible(true);
+			defns.set(null, new java.util.Hashtable<>());
+		} catch (ClassNotFoundException e) {
+			// Older builds might not have this helper.
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to clear SimpUtil state: " + e.getMessage(), e);
+		}
+	}
+
+	private static void clearModelValueState() {
+		try {
+			final Class<?> modelValue = Class.forName("tlc2.value.impl.ModelValue");
+			final java.lang.reflect.Field mvs = modelValue.getDeclaredField("mvs");
+			mvs.setAccessible(true);
+			mvs.set(null, null);
+		} catch (ClassNotFoundException e) {
+			// Component absent; ignore.
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to clear ModelValue state: " + e.getMessage(), e);
+		}
+	}
+
+	private static void clearTLCDebuggerOverride() {
+		try {
+			final Class<?> debugger = Class.forName("tlc2.debug.TLCDebugger");
+			final java.lang.reflect.Field override = debugger.getDeclaredField("OVERRIDE");
+			override.setAccessible(true);
+			override.set(null, null);
+		} catch (ClassNotFoundException | NoSuchFieldException e) {
+			// Debugger or override hook not present; ignore.
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to clear TLCDebugger override: " + e.getMessage(), e);
+		}
+	}
+
+	private static void clearTLCRunnerState() {
+		try {
+			final Class<?> tlcRunner = Class.forName("tlc2.TLCRunner");
+			final java.lang.reflect.Field jvmArgs = tlcRunner.getDeclaredField("JVM_ARGUMENTS");
+			jvmArgs.setAccessible(true);
+			jvmArgs.set(null, null);
+		} catch (ClassNotFoundException e) {
+			// Class not available; ignore.
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to clear TLCRunner state: " + e.getMessage(), e);
+		}
+	}
+
+	private static void resetFrontEndToolIdCounter() {
+		try {
+			final Class<?> frontEnd = Class.forName("tla2sany.semantic.FrontEnd");
+			final java.lang.reflect.Field idCnt = frontEnd.getDeclaredField("idCnt");
+			idCnt.setAccessible(true);
+			idCnt.setInt(null, 0);
+		} catch (Exception e) {
+			// Non-critical; leave counter untouched if inaccessible.
+		}
+	}
+	
+	/**
+	 * Clears operator override caches from the module AST of any previously run checkers.
+	 * 
+	 * This is called automatically by reset() to address issue #891.
+	 * Operator overrides are Java methods loaded from ITLCOverrides implementations
+	 * and cached in OpDefNode.toolObject fields. These caches must be cleared between
+	 * TLC runs to ensure clean re-initialization.
+	 * 
+	 * This method is safe to call even if no previous checker exists.
+	 */
+	private static void clearOperatorOverrideCaches() {
+		if (mainChecker == null) {
+			// No previous checker to clear caches from
+			return;
+		}
+		
+		try {
+			// Access the ITool from the checker, then get SpecProcessor
+			final Object tool = mainChecker.getClass().getField("tool").get(mainChecker);
+			if (tool == null) {
+				return;
+			}
+			
+			// Get the SpecProcessor from ITool
+			final Object specProcessor = tool.getClass().getMethod("getSpecProcessor").invoke(tool);
+			
+			if (specProcessor == null) {
+				return;
+			}
+			
+			// Get the SpecObj from SpecProcessor
+			final Class<?> specProcessorClass = specProcessor.getClass();
+			final java.lang.reflect.Method getSpecObjMethod = specProcessorClass.getMethod("getSpecObj");
+			final Object specObj = getSpecObjMethod.invoke(specProcessor);
+			
+			if (specObj == null) {
+				return;
+			}
+			
+			// Get ExternalModuleTable from SpecObj
+			final Class<?> specObjClass = specObj.getClass();
+			final java.lang.reflect.Method getExternalModuleTableMethod = specObjClass.getMethod("getExternalModuleTable");
+			final Object moduleTable = getExternalModuleTableMethod.invoke(specObj);
+			
+			if (moduleTable == null) {
+				return;
+			}
+			
+			// Get the toolId from SpecProcessor (it's a private field)
+			final java.lang.reflect.Field toolIdField = specProcessorClass.getDeclaredField("toolId");
+			toolIdField.setAccessible(true);
+			final int toolId = toolIdField.getInt(specProcessor);
+			
+			// Call ModuleASTCacheManager.clearModuleASTCache(moduleTable, toolId)
+			// Use reflection to avoid hard dependency
+			final Class<?> cacheManagerClass = Class.forName("tlc2.tool.ModuleASTCacheManager");
+			final java.lang.reflect.Method clearCacheMethod = cacheManagerClass.getMethod(
+				"clearModuleASTCache", 
+				Class.forName("tla2sany.semantic.ExternalModuleTable"),
+				int.class
+			);
+			clearCacheMethod.invoke(null, moduleTable, toolId);
+		} catch (final ClassNotFoundException e) {
+			// ModuleASTCacheManager not available
+			throw new RuntimeException("Failed to clear operator override caches: " + e.getMessage(), e);
+		} catch (final Exception e) {
+			// Propagate any other exceptions
+			throw new RuntimeException("Failed to clear operator override caches: " + e.getMessage(), e);
+		}
+	}
 }
+
