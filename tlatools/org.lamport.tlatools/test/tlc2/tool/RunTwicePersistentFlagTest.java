@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import tlc2.TLC;
 import tlc2.TLCGlobals;
-import tlc2.value.RandomEnumerableValues;
 
 /**
  * Demonstrates that TLCGlobals.reset() does not reset all global state.
@@ -75,7 +74,7 @@ public class RunTwicePersistentFlagTest {
 
         // ===== RESET 1 =====
         TLCGlobals.reset();
-        RandomEnumerableValues.reset();
+        // Note: RandomEnumerableValues.reset() is now called automatically by TLCGlobals.reset()
         if (TLCGlobals.mainChecker != null) {
             throw new AssertionError("TLCGlobals.mainChecker should be null after reset 1");
         }
@@ -128,7 +127,7 @@ public class RunTwicePersistentFlagTest {
 
         // ===== RESET 2 =====
         TLCGlobals.reset();
-        RandomEnumerableValues.reset();
+        // Note: RandomEnumerableValues.reset() is now called automatically by TLCGlobals.reset()
         if (TLCGlobals.mainChecker != null) {
             throw new AssertionError("TLCGlobals.mainChecker should be null after reset 2");
         }

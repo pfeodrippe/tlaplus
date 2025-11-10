@@ -161,10 +161,11 @@ If a test fails, check:
 
 ### When Modifying TLC Infrastructure
 
-1. **Know what resets what**:
-   - `TLCGlobals.reset()` → clears mainChecker, simulator, metaDir, flags
+1. **Know what resets what** (as of November 2025 with operator override cache fix):
+   - `TLCGlobals.reset()` → clears mainChecker, simulator, metaDir, flags, **operator override caches**
    - `UniqueString.initialize()` → resets string intern table
    - `RandomEnumerableValues.reset()` → resets RNG ThreadLocals
+   - See `ModuleASTCacheManager` for how operator override caches are cleared
 
 2. **Test in isolation**:
    - Run your test in its own JVM process
@@ -172,17 +173,27 @@ If a test fails, check:
 
 3. **Validate the complete reset sequence**:
    ```java
-   TLCGlobals.reset();
+   TLCGlobals.reset();        // Now includes operator override cache clearing
    UniqueString.initialize();
    RandomEnumerableValues.reset();
    ```
 
+4. **About Operator Override Caches** (Fixed in Issue #891):
+   - **What**: Java methods implementing TLA+ operators are cached in `OpDefNode.toolObject`
+   - **Problem**: Caches persisted across multiple TLC runs in same JVM
+   - **Solution**: `ModuleASTCacheManager.clearModuleASTCache()` called by `TLCGlobals.reset()`
+   - **Impact**: Multiple TLC runs in same JVM now work correctly
+   - **See**: `src/tlc2/tool/ModuleASTCacheManager.java` and `IMPLEMENTATION_SUMMARY.md`
+
 ## References
 
 - **Main Test**: `RunTwicePersistentFlagTest.java`
-- **Issue**: TLA+ #891 (Global state interference)
+- **Issue**: TLA+ #891 (Global state interference across multiple TLC runs)
+- **Issue Status**: ✅ FIXED (Implementation complete November 2025)
 - **Technical Report**: `INVESTIGATION_REPORT.md`
-- **Test Results**: `TEST_RESULTS.md`
+- **Implementation Summary**: `IMPLEMENTATION_SUMMARY.md`
+- **Root Cause Analysis**: `tlatools/org.lamport.tlatools/test-verify/tlc2/tool/OPERATOR_OVERRIDE_CACHE_BUG.md`
+- **Cache Manager**: `tlatools/org.lamport.tlatools/src/tlc2/tool/ModuleASTCacheManager.java`
 
 ## Quick Reference: Test Models
 

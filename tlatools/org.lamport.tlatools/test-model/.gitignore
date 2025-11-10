@@ -9,3 +9,9 @@ ModelCounter_TTrace*.tla
 ModelCounter_TTrace*.bin
 ModelComplexQueue_TTrace*.tla
 ModelComplexQueue_TTrace*.bin
+ModelWithOverride*_TTrace*.tla
+ModelWithOverride*_TTrace*.bin
+ModelWire*_TTrace*.tla
+ModelWire*_TTrace*.bin
+DynamicSpec*_TTrace*.tla
+DynamicSpec*_TTrace*.bin
